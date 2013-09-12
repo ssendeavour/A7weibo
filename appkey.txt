@@ -1,3 +1,0 @@
-App Key: 1437385304
-App Secret：9d548b68913afd8ab450254d7fa00a80
-应用地址：http://hi.baidu.com/a7_weibo
