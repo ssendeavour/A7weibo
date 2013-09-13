@@ -1,12 +1,41 @@
 package me.aiqi.A7weibo;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 import me.aiqi.A7weibo.authkeep.AccessTokenKeeper;
 import me.aiqi.A7weibo.entity.AppRegInfo;
 import me.aiqi.A7weibo.util.AppRegInfoHelper;
+import me.aiqi.A7weibo.util.WbUtil;
+
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.protocol.HTTP;
+import org.apache.http.util.EntityUtils;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.view.ViewPager;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.ActionBar.Tab;
+import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.weibo.sdk.android.Oauth2AccessToken;
 import com.weibo.sdk.android.Weibo;
@@ -15,26 +44,16 @@ import com.weibo.sdk.android.WeiboDialogError;
 import com.weibo.sdk.android.WeiboException;
 import com.weibo.sdk.android.sso.SsoHandler;
 
-import android.content.Intent;
-import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.view.ViewPager;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.ActionBar.Tab;
-import android.support.v7.app.ActionBarActivity;
-import android.text.TextUtils;
-import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.TextView;
-import android.widget.Toast;
-
 public class MainActivity extends ActionBarActivity implements ActionBar.TabListener {
 
 	protected static final String TAG = "MainActivity";
+	protected static final int BEGIN_GET_ACCESS_TOKEN_FROM_CODE = 0x100;
+	protected static final int FINISH_GET_ACCESS_TOKEN_FAILED = 0x101;
+	protected static final int FINISH_GET_ACCESS_TOKEN_SUCCEEDED = 0x102;
+
+	private AppRegInfo appRegInfo = AppRegInfoHelper.getAppRegInfo();
+	private Handler handler;
+	private SsoHandler ssoHandler;
 
 	SectionsPagerAdapter mSectionsPagerAdapter;
 	Oauth2AccessToken accessToken;
@@ -48,8 +67,21 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 
 		initUI();
 
+		handler = new Handler() {
+			public void handleMessage(android.os.Message msg) {
+				switch (msg.what) {
+				case BEGIN_GET_ACCESS_TOKEN_FROM_CODE:
+
+					break;
+
+				default:
+					break;
+				}
+			};
+		};
+
 		accessToken = AccessTokenKeeper.readAccessToken(this);
-		String date = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss", Locale.US).format(new Date(accessToken.getExpiresTime()));
+		String date = WbUtil.getExpireDateString(accessToken);
 		if (accessToken == null || isAuthExpired()) {
 			Log.i(TAG, "Authentication expired, reauth, expire time:" + date);
 			auth();
@@ -87,10 +119,6 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 		}
 	}
 
-	/**
-	 * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
-	 * one of the sections/tabs/pages.
-	 */
 	public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
 		public SectionsPagerAdapter(FragmentManager fm) {
@@ -130,10 +158,6 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 		}
 	}
 
-	/**
-	 * A dummy fragment representing a section of the app, but that simply
-	 * displays dummy text.
-	 */
 	public static class DummySectionFragment extends Fragment {
 		/**
 		 * The fragment argument representing the section number for this
@@ -155,20 +179,14 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 
 	@Override
 	public void onTabReselected(Tab arg0, android.support.v4.app.FragmentTransaction arg1) {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public void onTabSelected(Tab arg0, android.support.v4.app.FragmentTransaction arg1) {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public void onTabUnselected(Tab arg0, android.support.v4.app.FragmentTransaction arg1) {
-		// TODO Auto-generated method stub
-
 	}
 
 	public Boolean isAuthExpired() {
@@ -183,7 +201,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 	 */
 	public void auth() {
 		if (!isAuthExpired()) {
-			String date = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss", Locale.US).format(new Date(accessToken.getExpiresTime()));
+			String date = WbUtil.getExpireDateString(accessToken);
 			String msg = "access_token 仍在有效期内,无需再次登录: \naccess_token:" + accessToken.getToken() + "\n有效期：" + date;
 			Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
 			Log.i(TAG, msg);
@@ -195,8 +213,11 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 			Log.e(TAG, "can't get app key");
 			return;
 		}
-		Weibo weibo = Weibo.getInstance(appInfo.getAppKey(), appInfo.getAppUrl(), null);
-		new SsoHandler(this, weibo).authorize(new WeiboAuthListener() {
+		Log.i(TAG, appInfo.toString());
+		String SCOPE = "direct_messages_read,direct_messages_write," + "statuses_to_me_read," + "follow_app_official_microblog";
+		Weibo weibo = Weibo.getInstance(appInfo.getAppKey(), appInfo.getAppUrl(), SCOPE);
+		ssoHandler = new SsoHandler(this, weibo);
+		ssoHandler.authorize(new WeiboAuthListener() {
 
 			@Override
 			public void onWeiboException(WeiboException arg0) {
@@ -218,35 +239,10 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 				if (code != null) {
 					Log.i(TAG, "取得认证code: " + code);
 					Toast.makeText(MainActivity.this, "认证code成功", Toast.LENGTH_SHORT).show();
-				}
-				String token = values.getString("access_token");
-				String expires_in = values.getString("expires_in");
-				if (TextUtils.isEmpty(token) || TextUtils.isEmpty(expires_in)) {
-					String msg = "授权失败：token or expires_in empty!";
-					Log.e(TAG, msg);
-					Toast.makeText(MainActivity.this, msg, Toast.LENGTH_SHORT).show();
-					if (token != null) {
-						token = "";
-					}
-					Log.i(TAG, "token = " + token);
-
-					if (expires_in != null) {
-						expires_in = "";
-					}
-					Log.i(TAG, "expires_in = " + expires_in);
-					return;
-				}
-				accessToken = new Oauth2AccessToken(token, expires_in);
-				if (accessToken.isSessionValid()) {
-					String date = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss", Locale.US).format(new Date(accessToken.getExpiresTime()));
-					String msg = "认证成功: access_token: " + token + ", " + "expires_in: " + expires_in + "有效期：" + date;
-					Toast.makeText(MainActivity.this, msg, Toast.LENGTH_SHORT).show();
-					Log.i(TAG, msg);
-					if (AccessTokenKeeper.keepAccessToken(MainActivity.this, accessToken)) {
-						Log.i(TAG, "new access token saved to pref");
-					} else {
-						Log.i(TAG, "Fail to save new access token to pref");
-					}
+					getAccessTokenFromCode(code);
+				} else {
+					Log.i(TAG, "未取得认证code, " + values.toString());
+					Toast.makeText(MainActivity.this, "授权失败：无法获得Oauth2.0 code", Toast.LENGTH_SHORT).show();
 				}
 			}
 
@@ -256,6 +252,44 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 				Toast.makeText(MainActivity.this, msg, Toast.LENGTH_LONG).show();
 				Log.i(TAG, msg);
 			}
-		}, null);
+		});
+	}
+
+	@Override
+	protected void onActivityResult(int arg0, int arg1, Intent arg2) {
+		// TODO Auto-generated method stub
+		super.onActivityResult(arg0, arg1, arg2);
+		ssoHandler.authorizeCallBack(arg0, arg1, arg2);
+	}
+
+	public void getAccessTokenFromCode(final String code) {
+		new Thread() {
+			public void run() {
+				handler.sendMessage(handler.obtainMessage(BEGIN_GET_ACCESS_TOKEN_FROM_CODE));
+				String url = "https://api.weibo.com/oauth2/access_token";
+				String result = null;
+				HttpPost httpRequest = new HttpPost(url);
+				List<NameValuePair> params = new ArrayList<NameValuePair>();
+				params.add(new BasicNameValuePair("client_id", appRegInfo.getAppKey()));
+				params.add(new BasicNameValuePair("client_secret", appRegInfo.getAppSecret()));
+				params.add(new BasicNameValuePair("grant_type", "authorization_code"));
+				params.add(new BasicNameValuePair("redirect_uri", appRegInfo.getAppUrl()));
+				params.add(new BasicNameValuePair("code", code));
+				try {
+					httpRequest.setEntity(new UrlEncodedFormEntity(params, HTTP.UTF_8));
+					HttpResponse httpResponse = new DefaultHttpClient().execute(httpRequest);
+					if (httpResponse.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+						httpResponse.getEntity();
+						result = EntityUtils.toString(httpResponse.getEntity());
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+					handler.sendMessage(handler.obtainMessage(FINISH_GET_ACCESS_TOKEN_FAILED, e.getMessage()));
+					Log.e(TAG, e.getMessage());
+				}
+				handler.sendMessage(handler.obtainMessage(FINISH_GET_ACCESS_TOKEN_SUCCEEDED, result));
+				Log.i(TAG, "access_token: " + result);
+			};
+		}.start();
 	}
 }
