@@ -61,14 +61,13 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 
 	private SectionsPagerAdapter mSectionsPagerAdapter;
 	private ViewPager mViewPager;
-
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
-
 		initUI();
-
+		
 		accessToken = AccessTokenKeeper.readAccessToken(this);
 		if (accessToken == null || accessToken.isExpired()) {
 			Log.i(TAG, "Authentication expired, expire time:" + accessToken.getExpireTimeString());
@@ -76,6 +75,8 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 		} else {
 			Log.i(TAG, "Authentication is valid. Expire time: " + accessToken.getExpireTimeString());
 		}
+		// at this point, accessToken should be valid if user granted access
+		((GlobalVariable) getApplicationContext()).setAccessToken(accessToken);
 
 		handler = new Handler() {
 			public void handleMessage(android.os.Message msg) {

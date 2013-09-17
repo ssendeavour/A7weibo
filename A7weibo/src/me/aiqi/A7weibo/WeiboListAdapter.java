@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import me.aiqi.A7weibo.downloader.WeiboDownloader;
+import me.aiqi.A7weibo.entity.AccessToken;
 import me.aiqi.A7weibo.entity.WeiboItem;
 
 import android.content.Context;
@@ -16,26 +17,32 @@ import android.widget.TextView;
 
 public class WeiboListAdapter extends BaseAdapter {
 	private Context mContext;
-	private List<WeiboItem> weiboItems = new ArrayList<WeiboItem>();
+	private List<WeiboItem> mWeiboItems = new ArrayList<WeiboItem>();
+	private WeiboDownloader mDownloader = new WeiboDownloader(this);
+	private AccessToken mAccessToken;
 
 	public WeiboListAdapter(Context context) {
-		this.mContext = context;
+		mContext = context;
+		mAccessToken = ((GlobalVariable) mContext.getApplicationContext()).getAccessToken();
 
+		WeiboDownloader.Params params = new WeiboDownloader.Params();
+		params.put(WeiboDownloader.Params.ACCESS_TOKEN, mAccessToken.getAccessToken());
+		mDownloader.execute(params);
 	}
 
 	@Override
 	public int getCount() {
-		return weiboItems.size();
+		return mWeiboItems.size();
 	}
 
 	@Override
 	public WeiboItem getItem(int position) {
-		return weiboItems.get(position);
+		return mWeiboItems.get(position);
 	}
 
 	@Override
 	public long getItemId(int position) {
-		return weiboItems.get(position).getId();
+		return mWeiboItems.get(position).getId();
 	}
 
 	private static class ViewHolder {
@@ -65,7 +72,7 @@ public class WeiboListAdapter extends BaseAdapter {
 		Button btn_comment;
 		Button btn_forawrd;
 		Button btn_like;
-		
+
 		if (convertView == null) {
 			convertView = LayoutInflater.from(mContext).inflate(R.layout.frag_weibo_list_item, parent, false);
 			tv_nickname = (TextView) convertView.findViewById(R.id.tv_nickname);
@@ -75,7 +82,7 @@ public class WeiboListAdapter extends BaseAdapter {
 			btn_forawrd = (Button) convertView.findViewById(R.id.btn_forawrd);
 			btn_like = (Button) convertView.findViewById(R.id.btn_like);
 			convertView.setTag(new ViewHolder(tv_nickname, tv_source, tv_weibo_content, btn_comment, btn_forawrd, btn_like));
-		}else {
+		} else {
 			ViewHolder viewHolder = (ViewHolder) convertView.getTag();
 			tv_nickname = viewHolder.tv_nickname;
 			tv_source = viewHolder.tv_source;
@@ -95,7 +102,7 @@ public class WeiboListAdapter extends BaseAdapter {
 	}
 
 	public void updateWeibolist(List<WeiboItem> weiboItems) {
-		this.weiboItems = weiboItems;
+		mWeiboItems = weiboItems;
 		notifyDataSetChanged();
 	}
 }
