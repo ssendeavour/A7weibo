@@ -1,8 +1,12 @@
 package me.aiqi.A7weibo.downloader;
 
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -128,21 +132,39 @@ public class WeiboDownloader extends AsyncTask<WeiboDownloader.Params, Void, Arr
 	 */
 	@Override
 	protected void onPostExecute(ArrayList<WeiboItem> result) {
+		Log.i(TAG, "got " + result.size() + " new weibo, update adapter now");
 		mAdapter.updateWeibolist(result);
 		super.onPostExecute(result);
 	}
 
 	/**
 	 * parse json string and encapsulate Weibo items into ArrayList<WeiboItem>
+	 * 
 	 * @param json
 	 * @return ArrayList<WeiboItem>
 	 */
 	protected ArrayList<WeiboItem> parseJson(String json) {
+		Log.i(TAG, "json: length: " + json.length());
+	/*	try {
+			OutputStreamWriter outputStreamWriter = new OutputStreamWriter(new FileOutputStream("/sdcard/weibojson.txt"), "UTF-8");
+			outputStreamWriter.write(json);
+			outputStreamWriter.close();
+		} catch (Exception e1) {
+			e1.printStackTrace();
+		}*/
 		ArrayList<WeiboItem> list = new ArrayList<WeiboItem>();
 		try {
-			JSONTokener tokener = new JSONTokener(json);
-			JSONObject object;
-			while ((object = (JSONObject) tokener.nextValue()) != JSONObject.NULL) {
+			JSONObject object = new JSONObject(json);
+			JSONArray array = null;
+			if (object != null) {
+				array = object.optJSONArray("statuses");
+			}
+			if (array == null) {
+				return null;
+			}
+			Log.i(TAG, "begin build ArrayList");
+			for (int i = 0; i < array.length(); i++) {
+				object = (JSONObject) array.get(i);
 				WeiboItem weiboItem = new WeiboItem();
 				weiboItem.setAttitudes_count(object.optInt("attitudes_count")); // fallback:0
 				weiboItem.setComments_count(object.optInt("comments_count")); // fallback:0
@@ -152,15 +174,15 @@ public class WeiboDownloader extends AsyncTask<WeiboDownloader.Params, Void, Arr
 				weiboItem.setId(object.optLong("id")); // fallback:0
 				weiboItem.setIdstr(object.optString("idstr")); // fallback:""
 				weiboItem.setOriginal_pic(object.optString("original_pic")); // fallback:""
-				JSONArray array = object.optJSONArray("pic_urls"); // fallback:null
+				JSONArray pic_urlsaArray = object.optJSONArray("pic_urls"); // fallback:null
 				if (array != null) {
 					ArrayList<String> pic_urls = new ArrayList<String>();
-					for (int i = 0; i < array.length(); i++) {
-						pic_urls.add(array.getString(i));
+					for (int j = 0; j < pic_urlsaArray.length(); j++) {
+						pic_urls.add(array.getString(j));
 					}
 					weiboItem.setPic_urls(pic_urls);
 				}
-				 weiboItem.setReposts_count(object.optInt("reposts_count"));
+				weiboItem.setReposts_count(object.optInt("reposts_count"));
 				// //TODO: 暂时不实现
 				weiboItem.setSource(object.optString("source"));
 				weiboItem.setText(object.optString("text"));

@@ -41,6 +41,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
+                android:textSize="12sp"
                 android:gravity="center_vertical"
                 android:singleLine="true"
                 android:text="来自A7weibo"
@@ -60,6 +61,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="8dp"
+        android:textColor="#000"
         android:text="A7Weibo微博正文"
         android:textSize="18sp" />
 

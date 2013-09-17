@@ -8,6 +8,8 @@ import me.aiqi.A7weibo.entity.AccessToken;
 import me.aiqi.A7weibo.entity.WeiboItem;
 
 import android.content.Context;
+import android.text.Html;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,6 +18,7 @@ import android.widget.Button;
 import android.widget.TextView;
 
 public class WeiboListAdapter extends BaseAdapter {
+	private static final String TAG = "WeiboListAdapter";
 	private Context mContext;
 	private List<WeiboItem> mWeiboItems = new ArrayList<WeiboItem>();
 	private WeiboDownloader mDownloader = new WeiboDownloader(this);
@@ -93,11 +96,12 @@ public class WeiboListAdapter extends BaseAdapter {
 		}
 		WeiboItem weiboItem = getItem(position);
 		tv_nickname.setText(weiboItem.getIdstr());
-		tv_source.setText("来自" + weiboItem.getSource() + " " + weiboItem.getCreated_at());
+		tv_source.setText(Html.fromHtml("来自" + weiboItem.getSource() + " " + weiboItem.getCreated_at()));
 		tv_weibo_content.setText(weiboItem.getText());
 		btn_comment.setText("评论(" + weiboItem.getComments_count() + ")");
 		btn_forawrd.setText("转发(" + weiboItem.getReposts_count() + ")");
 		btn_like.setText("赞(" + weiboItem.getAttitudes_count() + ")");
+		Log.i(TAG, "getView called");
 		return convertView;
 	}
 
