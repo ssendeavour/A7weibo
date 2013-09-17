@@ -1,0 +1,28 @@
+
+<!-- The frame layout is here since we will be showing either the empty view or the list view. -->
+
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:drawable/gallery_thumb"
+    android:orientation="vertical" >
+
+    <!-- Here is the list. Since we are using a ListActivity, we have to call it "@android:id/list" so ListActivity will find it -->
+
+    <ListView
+        android:id="@android:id/list"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" >
+    </ListView>
+
+    <!-- Here is the view to show if the list is emtpy -->
+
+    <TextView
+        android:id="@android:id/empty"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        android:text="Can&apos;t get new weibo."
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+</FrameLayout>

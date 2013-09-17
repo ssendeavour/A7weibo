@@ -4,10 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-import me.aiqi.A7weibo.authkeep.AccessTokenKeeper;
+import me.aiqi.A7weibo.auth.AccessTokenKeeper;
+import me.aiqi.A7weibo.entity.AccessToken;
 import me.aiqi.A7weibo.entity.AppRegInfo;
+import me.aiqi.A7weibo.entity.Consts;
 import me.aiqi.A7weibo.util.AppRegInfoHelper;
-import me.aiqi.A7weibo.util.WbUtil;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -18,11 +19,12 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Message;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
@@ -37,7 +39,6 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.weibo.sdk.android.Oauth2AccessToken;
 import com.weibo.sdk.android.Weibo;
 import com.weibo.sdk.android.WeiboAuthListener;
 import com.weibo.sdk.android.WeiboDialogError;
@@ -47,6 +48,7 @@ import com.weibo.sdk.android.sso.SsoHandler;
 public class MainActivity extends ActionBarActivity implements ActionBar.TabListener {
 
 	protected static final String TAG = "MainActivity";
+	static final int TAB_ITEM_NUMBER = 3;
 	protected static final int BEGIN_GET_ACCESS_TOKEN_FROM_CODE = 0x100;
 	protected static final int FINISH_GET_ACCESS_TOKEN_FAILED = 0x101;
 	protected static final int FINISH_GET_ACCESS_TOKEN_SUCCEEDED = 0x102;
@@ -55,10 +57,10 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 	private Handler handler;
 	private SsoHandler ssoHandler;
 
-	SectionsPagerAdapter mSectionsPagerAdapter;
-	Oauth2AccessToken accessToken;
+	private AccessToken accessToken;
 
-	ViewPager mViewPager;
+	private SectionsPagerAdapter mSectionsPagerAdapter;
+	private ViewPager mViewPager;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -67,11 +69,39 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 
 		initUI();
 
+		accessToken = AccessTokenKeeper.readAccessToken(this);
+		if (accessToken == null || accessToken.isExpired()) {
+			Log.i(TAG, "Authentication expired, expire time:" + accessToken.getExpireTimeString());
+			auth();
+		} else {
+			Log.i(TAG, "Authentication is valid. Expire time: " + accessToken.getExpireTimeString());
+		}
+
 		handler = new Handler() {
 			public void handleMessage(android.os.Message msg) {
 				switch (msg.what) {
 				case BEGIN_GET_ACCESS_TOKEN_FROM_CODE:
 
+					break;
+
+				case FINISH_GET_ACCESS_TOKEN_SUCCEEDED:
+					String result = (String) msg.obj;
+					try {
+						JSONObject jsonObject = new JSONObject(result);
+						appRegInfo.setUid(jsonObject.getLong(Consts.UID));
+						accessToken.setAccessToken(jsonObject.getString(Consts.ACCESS_TOKEN));
+						accessToken.setExpireTimeFromExpiresIn(jsonObject.getLong(Consts.EXPIRES_IN));
+
+						AccessTokenKeeper.keepAccessToken(MainActivity.this, accessToken);
+						Log.i(TAG, appRegInfo.toString());
+						Log.i(TAG, accessToken.toString());
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+
+					break;
+				case FINISH_GET_ACCESS_TOKEN_FAILED:
+					Toast.makeText(MainActivity.this, "授权失败：获取access_token失败", Toast.LENGTH_SHORT).show();
 					break;
 
 				default:
@@ -80,14 +110,6 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 			};
 		};
 
-		accessToken = AccessTokenKeeper.readAccessToken(this);
-		String date = WbUtil.getExpireDateString(accessToken);
-		if (accessToken == null || isAuthExpired()) {
-			Log.i(TAG, "Authentication expired, reauth, expire time:" + date);
-			auth();
-		} else {
-			Log.i(TAG, "Authentication is valid. Expire time: " + date);
-		}
 	}
 
 	private void initUI() {
@@ -127,20 +149,21 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 
 		@Override
 		public Fragment getItem(int position) {
-			// getItem is called to instantiate the fragment for the given page.
-			// Return a DummySectionFragment (defined as a static inner class
-			// below) with the page number as its lone argument.
-			Fragment fragment = new DummySectionFragment();
-			Bundle args = new Bundle();
-			args.putInt(DummySectionFragment.ARG_SECTION_NUMBER, position + 1);
-			fragment.setArguments(args);
+			Fragment fragment = null;
+			if (position == 0) {
+				fragment = new WeiboViewFragment();
+			} else {
+				fragment = new DummySectionFragment();
+				Bundle args = new Bundle();
+				args.putInt(DummySectionFragment.ARG_SECTION_NUMBER, position + 1);
+				fragment.setArguments(args);
+			}
 			return fragment;
 		}
 
 		@Override
 		public int getCount() {
-			// Show 3 total pages.
-			return 3;
+			return TAB_ITEM_NUMBER;
 		}
 
 		@Override
@@ -170,9 +193,10 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 
 		@Override
 		public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+			int sectionNumber = getArguments().getInt(ARG_SECTION_NUMBER);
 			View rootView = inflater.inflate(R.layout.fragment_main_dummy, container, false);
 			TextView dummyTextView = (TextView) rootView.findViewById(R.id.section_label);
-			dummyTextView.setText(Integer.toString(getArguments().getInt(ARG_SECTION_NUMBER)));
+			dummyTextView.setText(Integer.toString(sectionNumber));
 			return rootView;
 		}
 	}
@@ -189,20 +213,12 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 	public void onTabUnselected(Tab arg0, android.support.v4.app.FragmentTransaction arg1) {
 	}
 
-	public Boolean isAuthExpired() {
-		if (accessToken != null) {
-			return !accessToken.isSessionValid();
-		}
-		return true;
-	}
-
 	/**
 	 * perform authentication
 	 */
 	public void auth() {
-		if (!isAuthExpired()) {
-			String date = WbUtil.getExpireDateString(accessToken);
-			String msg = "access_token 仍在有效期内,无需再次登录: \naccess_token:" + accessToken.getToken() + "\n有效期：" + date;
+		if (!accessToken.isExpired()) {
+			String msg = "access_token 仍在有效期内,无需再次登录; " + accessToken.toString();
 			Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
 			Log.i(TAG, msg);
 			return;
@@ -252,14 +268,15 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 				Toast.makeText(MainActivity.this, msg, Toast.LENGTH_LONG).show();
 				Log.i(TAG, msg);
 			}
-		});
+		}, null);
 	}
 
 	@Override
 	protected void onActivityResult(int arg0, int arg1, Intent arg2) {
-		// TODO Auto-generated method stub
 		super.onActivityResult(arg0, arg1, arg2);
-		ssoHandler.authorizeCallBack(arg0, arg1, arg2);
+		if (ssoHandler != null) {
+			ssoHandler.authorizeCallBack(arg0, arg1, arg2);
+		}
 	}
 
 	public void getAccessTokenFromCode(final String code) {
@@ -287,8 +304,8 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 					handler.sendMessage(handler.obtainMessage(FINISH_GET_ACCESS_TOKEN_FAILED, e.getMessage()));
 					Log.e(TAG, e.getMessage());
 				}
-				handler.sendMessage(handler.obtainMessage(FINISH_GET_ACCESS_TOKEN_SUCCEEDED, result));
 				Log.i(TAG, "access_token: " + result);
+				handler.sendMessage(handler.obtainMessage(FINISH_GET_ACCESS_TOKEN_SUCCEEDED, result));
 			};
 		}.start();
 	}

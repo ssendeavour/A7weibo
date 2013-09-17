@@ -27,7 +27,7 @@ public class AppRegInfoHelper {
 				appUrl = "";
 			}
 
-			appinfo = new AppRegInfo(appKey, appSecret, appUrl);
+			appinfo = new AppRegInfo(appKey, appSecret, appUrl, 0);
 
 		} catch (Exception e) {
 			e.printStackTrace();

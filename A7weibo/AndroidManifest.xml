@@ -31,7 +31,7 @@
         </activity>
         <activity android:name=".Authentication" >
         </activity>
-        <activity android:name="me.aiqi.A7weibo.authkeep.AccessTokenKeeper" >
+        <activity android:name="me.aiqi.A7weibo.auth.AccessTokenKeeper" >
         </activity>
     </application>
 

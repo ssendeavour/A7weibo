@@ -25,6 +25,6 @@ public class WbUtil {
 		if (accessToken == null) {
 			return "";
 		}
-		return new SimpleDateFormat("yyyy-MM-dd hh:mm:ss", Locale.US).format(new Date(accessToken.getExpiresTime()));
+		return new SimpleDateFormat("yyyy-MM-dd hh:mm:ss", Locale.US).format(new Date(1000 * accessToken.getExpiresTime()));
 	}
 }

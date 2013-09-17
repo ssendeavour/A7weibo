@@ -1,0 +1,184 @@
+package me.aiqi.A7weibo.downloader;
+
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+
+import me.aiqi.A7weibo.WeiboListAdapter;
+import me.aiqi.A7weibo.entity.WeiboGeo;
+import me.aiqi.A7weibo.entity.WeiboItem;
+import me.aiqi.A7weibo.entity.WeiboVisiblity;
+
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.json.JSONTokener;
+
+import android.net.Uri;
+import android.os.AsyncTask;
+import android.util.JsonReader;
+import android.util.Log;
+
+public class WeiboDownloader extends AsyncTask<WeiboDownloader.Params, Void, ArrayList<WeiboItem>> {
+
+	private static final String TAG = "WeiboDownloader";
+	private WeiboListAdapter mAdapter;
+
+	public WeiboDownloader(WeiboListAdapter adapter) {
+		mAdapter = adapter;
+	}
+
+	public static class Params {
+		public static final String mUrl = "https://api.weibo.com/2/statuses/friends_timeline.json";
+
+		public static final String ACCESS_TOKEN = "access_token"; // OAuth2.0方式授权的必选，其余为选填
+		public static final String SINCE_ID = "since_id"; // long,返回ID比since_id大的微博，默认为0。
+		public static final String MAX_ID = "max_id"; // long，回ID小于或等于max_id的微博，默认为0。
+		public static final String COUNT = "count"; // 单页返回的记录条数，最大不超过100，默认为20。
+		public static final String PAGE = "page"; // 返回结果的页码，默认为1。
+		public static final String BASE_APP = "base_app"; // 是否只获取当前应用的数据。0为否（所有数据），1为是（仅当前应用），默认为0。
+		public static final String FEATURE = "feature"; // 过滤类型ID，0：全部、1：原创、2：图片、3：视频、4：音乐，默认为0。
+		public static final String TRIM_USER = "trim_user"; // int,
+															// 返回值中user字段开关，0：返回完整user字段、1：user字段仅返回user_id，默认为0。
+
+		public static final int FEATURE_ALL = 0; // 全部
+		public static final int FEATURE_ORIGNAL = 1; // 原创
+		public static final int FEATURE_PICTURE = 2; // 图片
+		public static final int FEATURE_VIDEO = 3; // 视频
+		public static final int FEATURE_MUSIC = 4; // 音乐
+
+		public static final int TRIM_USER_YES = 1; // 返回结果中user字段仅返回user_id
+		public static final int TRIM_USER_NO = 0; // 返回完整user字段
+		public static final int BASE_APP_YES = 1; // 仅返回当前应用的数据
+		public static final int BASE_APP_NO = 0; // 获得所有数据
+
+		private Map<String, String> mMap;
+
+		public Params() {
+			mMap = new HashMap<String, String>();
+		}
+
+		public Params(HashMap<String, String> map) {
+			mMap = map;
+		}
+
+		/**
+		 * return complete encoded query url
+		 * 
+		 * @return
+		 */
+		public String buildURL() {
+			Uri.Builder builder = Uri.parse(mUrl).buildUpon();
+			for (Map.Entry<String, String> pair : mMap.entrySet()) {
+				builder.appendQueryParameter(pair.getKey(), pair.getValue());
+			}
+			return builder.build().toString();
+		}
+
+		public String put(String key, String value) {
+			return mMap.put(key, value);
+		}
+
+		public void clear() {
+			mMap.clear();
+		}
+
+		public String remove(String key) {
+			return mMap.remove(key);
+		}
+	}
+
+	@Override
+	protected ArrayList<WeiboItem> doInBackground(Params... params) {
+		try {
+			StringBuilder sb = new StringBuilder();
+			String url = params[0].buildURL();
+			HttpGet httpGet = new HttpGet(url);
+			Log.i(TAG, "Request weibo:" + url);
+			HttpResponse response = new DefaultHttpClient().execute(httpGet);
+			int statusCode = response.getStatusLine().getStatusCode();
+			if (statusCode == HttpStatus.SC_OK) {
+				InputStream inputStream = response.getEntity().getContent();
+				BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+				String line;
+				while ((line = reader.readLine()) != null) {
+					sb.append(line);
+				}
+				return parseJson(sb.toString());
+			} else {
+				Log.e(TAG, "Failed downloading weibo update " + url + ", status code: " + statusCode);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			Log.e(TAG, e.toString());
+		}
+		return null;
+	}
+
+	/**
+	 * notify view to update UI
+	 */
+	@Override
+	protected void onPostExecute(ArrayList<WeiboItem> result) {
+		mAdapter.updateWeibolist(result);
+		super.onPostExecute(result);
+	}
+
+	/**
+	 * parse json string and encapsulate Weibo items into ArrayList<WeiboItem>
+	 * @param json
+	 * @return ArrayList<WeiboItem>
+	 */
+	protected ArrayList<WeiboItem> parseJson(String json) {
+		ArrayList<WeiboItem> list = new ArrayList<WeiboItem>();
+		try {
+			JSONTokener tokener = new JSONTokener(json);
+			JSONObject object;
+			while ((object = (JSONObject) tokener.nextValue()) != JSONObject.NULL) {
+				WeiboItem weiboItem = new WeiboItem();
+				weiboItem.setAttitudes_count(object.optInt("attitudes_count")); // fallback:0
+				weiboItem.setComments_count(object.optInt("comments_count")); // fallback:0
+				weiboItem.setCreated_at(object.optString("created_at")); // fallback:""
+				weiboItem.setFavorited(object.optBoolean("favorited")); // fallback:false
+				// weiboItem.setGeo(); // fallback:null
+				weiboItem.setId(object.optLong("id")); // fallback:0
+				weiboItem.setIdstr(object.optString("idstr")); // fallback:""
+				weiboItem.setOriginal_pic(object.optString("original_pic")); // fallback:""
+				JSONArray array = object.optJSONArray("pic_urls"); // fallback:null
+				if (array != null) {
+					ArrayList<String> pic_urls = new ArrayList<String>();
+					for (int i = 0; i < array.length(); i++) {
+						pic_urls.add(array.getString(i));
+					}
+					weiboItem.setPic_urls(pic_urls);
+				}
+				 weiboItem.setReposts_count(object.optInt("reposts_count"));
+				// //TODO: 暂时不实现
+				weiboItem.setSource(object.optString("source"));
+				weiboItem.setText(object.optString("text"));
+				weiboItem.setThumbnail_pic(object.optString("thumbnail_pic"));
+				weiboItem.setTruncated(object.optBoolean("truncated"));
+				// weiboItem.setUser(user); //TODO: 暂时不管
+				WeiboVisiblity visiblity = new WeiboVisiblity(object.optInt("visible"));
+				if (visiblity.getType() == WeiboVisiblity.SELECTED_GROUP) {
+					visiblity.setList_id(object.optInt("list_id"));
+				}
+				weiboItem.setVisible(visiblity);
+				Log.i(TAG, weiboItem.toString());
+				list.add(weiboItem);
+			}
+		} catch (JSONException e) {
+			e.printStackTrace();
+			Log.w(TAG, "parsing weiboitem json error:" + e.toString());
+		}
+		return list;
+	}
+}
