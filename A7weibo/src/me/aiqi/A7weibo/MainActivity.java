@@ -6,12 +6,12 @@ import java.util.Locale;
 import java.util.TimerTask;
 
 import me.aiqi.A7weibo.auth.AccessTokenKeeper;
-import me.aiqi.A7weibo.connection.SslClient;
 import me.aiqi.A7weibo.downloader.WeiboDownloader;
 import me.aiqi.A7weibo.entity.AccessToken;
 import me.aiqi.A7weibo.entity.AppRegInfo;
 import me.aiqi.A7weibo.entity.Consts;
 import me.aiqi.A7weibo.entity.WeiboItem;
+import me.aiqi.A7weibo.network.SslClient;
 import me.aiqi.A7weibo.util.AppRegInfoHelper;
 
 import org.apache.http.HttpResponse;

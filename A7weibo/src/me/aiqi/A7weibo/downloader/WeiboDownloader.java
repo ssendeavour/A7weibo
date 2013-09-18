@@ -17,11 +17,11 @@ import java.util.Map;
 import javax.net.ssl.X509TrustManager;
 
 import me.aiqi.A7weibo.WeiboListAdapter;
-import me.aiqi.A7weibo.connection.SslClient;
 import me.aiqi.A7weibo.entity.WeiboGeo;
 import me.aiqi.A7weibo.entity.WeiboItem;
 import me.aiqi.A7weibo.entity.WeiboUser;
 import me.aiqi.A7weibo.entity.WeiboVisiblity;
+import me.aiqi.A7weibo.network.SslClient;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
