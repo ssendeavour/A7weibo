@@ -29,6 +29,11 @@ import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.impl.client.DefaultHttpClient;
 
+/**
+ * Handle HTTPS connection, taken from http://stackoverflow.com/questions/7622004/android-making-https-request
+ * @author starfish
+ *
+ */
 public class SslClient {
 
 	public static HttpClient getSslClient(HttpClient httpClient) {

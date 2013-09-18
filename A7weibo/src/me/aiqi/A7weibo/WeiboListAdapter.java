@@ -6,6 +6,7 @@ import java.util.List;
 import me.aiqi.A7weibo.downloader.WeiboDownloader;
 import me.aiqi.A7weibo.entity.AccessToken;
 import me.aiqi.A7weibo.entity.WeiboItem;
+import me.aiqi.A7weibo.entity.WeiboUser;
 
 import android.content.Context;
 import android.text.Html;
@@ -16,23 +17,16 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class WeiboListAdapter extends BaseAdapter {
 	private static final String TAG = "WeiboListAdapter";
 	private Context mContext;
 	private List<WeiboItem> mWeiboItems = new ArrayList<WeiboItem>();
 	private WeiboDownloader mDownloader = new WeiboDownloader(this);
-	private AccessToken mAccessToken;
 
 	public WeiboListAdapter(Context context) {
 		mContext = context;
-		mAccessToken = ((GlobalVariable) mContext.getApplicationContext()).getAccessToken();
-
-		if (mAccessToken != null && !mAccessToken.isExpired()) {
-			WeiboDownloader.Params params = new WeiboDownloader.Params();
-			params.put(WeiboDownloader.Params.ACCESS_TOKEN, mAccessToken.getAccessToken());
-			mDownloader.execute(params);
-		}
 	}
 
 	@Override
@@ -97,7 +91,11 @@ public class WeiboListAdapter extends BaseAdapter {
 			btn_like = viewHolder.btn_like;
 		}
 		WeiboItem weiboItem = getItem(position);
-		tv_nickname.setText(weiboItem.getIdstr());
+		WeiboUser user = weiboItem.getUser();
+		if (user != null) {
+			tv_nickname.setText(weiboItem.getUser().getScreen_name());
+		}
+
 		tv_source.setText(Html.fromHtml("来自" + weiboItem.getSource() + " " + weiboItem.getCreated_at()));
 		tv_weibo_content.setText(weiboItem.getText());
 		btn_comment.setText("评论(" + weiboItem.getComments_count() + ")");
@@ -110,5 +108,13 @@ public class WeiboListAdapter extends BaseAdapter {
 	public void updateWeibolist(List<WeiboItem> weiboItems) {
 		mWeiboItems = weiboItems;
 		notifyDataSetChanged();
+	}
+
+	public void getWeiboItems(WeiboDownloader.Params params) {
+		if (mDownloader.isRunning()) {
+			Log.w(TAG, "another weibo download task running");
+			return;
+		}
+		mDownloader.execute(params);
 	}
 }

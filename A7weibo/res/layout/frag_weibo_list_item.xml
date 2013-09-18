@@ -34,6 +34,7 @@
                 android:gravity="center_vertical"
                 android:singleLine="true"
                 android:text="A7Weibo 昵称"
+                android:textColor="#000"
                 android:textSize="16sp" />
 
             <TextView
@@ -41,29 +42,30 @@
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
-                android:textSize="12sp"
                 android:gravity="center_vertical"
                 android:singleLine="true"
                 android:text="来自A7weibo"
-                android:textColor="#AAA" />
+                android:textSize="12sp" />
         </LinearLayout>
     </RelativeLayout>
 
-    <ProgressBar
+    <!--
+         <ProgressBar
         android:layout_width="match_parent"
         android:layout_height="3dp"
         android:layout_marginBottom="5dp"
         android:layout_marginTop="5dp"
         android:background="#EEE" />
+    -->
 
     <TextView
         android:id="@+id/tv_weibo_content"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="8dp"
-        android:textColor="#000"
         android:text="A7Weibo微博正文"
-        android:textSize="18sp" />
+        android:textColor="#000"
+        android:textSize="16sp" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -76,7 +78,10 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:layout_weight="1"
-            android:text="转发(100)" />
+            android:padding="0dp"
+            android:singleLine="true"
+            android:text="转发(100)"
+            android:textSize="14sp" />
 
         <Button
             android:id="@+id/btn_comment"
@@ -84,7 +89,10 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:layout_weight="1"
-            android:text="评论(100)" />
+            android:padding="0dp"
+            android:singleLine="true"
+            android:text="评论(100)"
+            android:textSize="14sp" />
 
         <Button
             android:id="@+id/btn_like"
@@ -92,7 +100,10 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:layout_weight="1"
-            android:text="赞(100)" />
+            android:padding="0dp"
+            android:singleLine="true"
+            android:text="赞(100)"
+            android:textSize="14sp" />
     </LinearLayout>
 
 </LinearLayout>

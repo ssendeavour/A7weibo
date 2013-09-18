@@ -20,6 +20,7 @@ import me.aiqi.A7weibo.WeiboListAdapter;
 import me.aiqi.A7weibo.connection.SslClient;
 import me.aiqi.A7weibo.entity.WeiboGeo;
 import me.aiqi.A7weibo.entity.WeiboItem;
+import me.aiqi.A7weibo.entity.WeiboUser;
 import me.aiqi.A7weibo.entity.WeiboVisiblity;
 
 import org.apache.http.HttpResponse;
@@ -35,6 +36,7 @@ import org.json.JSONTokener;
 
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.text.TextUtils;
 import android.util.JsonReader;
 import android.util.Log;
 
@@ -42,6 +44,7 @@ public class WeiboDownloader extends AsyncTask<WeiboDownloader.Params, Void, Arr
 
 	private static final String TAG = "WeiboDownloader";
 	private WeiboListAdapter mAdapter;
+	private boolean isRunning = false;
 
 	public WeiboDownloader(WeiboListAdapter adapter) {
 		mAdapter = adapter;
@@ -108,6 +111,12 @@ public class WeiboDownloader extends AsyncTask<WeiboDownloader.Params, Void, Arr
 	}
 
 	@Override
+	protected void onPreExecute() {
+		isRunning = true;
+		super.onPreExecute();
+	}
+
+	@Override
 	protected ArrayList<WeiboItem> doInBackground(Params... params) {
 		try {
 			String url = params[0].buildURL();
@@ -128,6 +137,15 @@ public class WeiboDownloader extends AsyncTask<WeiboDownloader.Params, Void, Arr
 	}
 
 	/**
+	 * if there is already a task running;
+	 * 
+	 * @return
+	 */
+	public boolean isRunning() {
+		return isRunning;
+	}
+
+	/**
 	 * notify view to update UI
 	 */
 	@Override
@@ -136,8 +154,9 @@ public class WeiboDownloader extends AsyncTask<WeiboDownloader.Params, Void, Arr
 			Log.i(TAG, "got " + result.size() + " new weibo, update adapter now");
 			mAdapter.updateWeibolist(result);
 		} else {
-			Log.i(TAG, "get nothing");
+			Log.i(TAG, "got nothing");
 		}
+		isRunning = false;
 
 		super.onPostExecute(result);
 	}
@@ -149,13 +168,11 @@ public class WeiboDownloader extends AsyncTask<WeiboDownloader.Params, Void, Arr
 	 * @return ArrayList<WeiboItem>
 	 */
 	protected ArrayList<WeiboItem> parseJson(String json) {
+		if (TextUtils.isEmpty(json)) {
+			Log.w(TAG, "json is empty or null");
+			return null;
+		}
 		Log.i(TAG, "json: length: " + json.length());
-		/*
-		 * try { OutputStreamWriter outputStreamWriter = new
-		 * OutputStreamWriter(new FileOutputStream("/sdcard/weibojson.txt"),
-		 * "UTF-8"); outputStreamWriter.write(json); outputStreamWriter.close();
-		 * } catch (Exception e1) { e1.printStackTrace(); }
-		 */
 		ArrayList<WeiboItem> list = new ArrayList<WeiboItem>();
 		try {
 			JSONObject object = new JSONObject(json);
@@ -164,6 +181,7 @@ public class WeiboDownloader extends AsyncTask<WeiboDownloader.Params, Void, Arr
 				array = object.optJSONArray("statuses");
 			}
 			if (array == null) {
+				Log.w(TAG, "Error parsing weiboitem json");
 				return null;
 			}
 			Log.i(TAG, "begin build ArrayList");
@@ -178,21 +196,22 @@ public class WeiboDownloader extends AsyncTask<WeiboDownloader.Params, Void, Arr
 				weiboItem.setId(object.optLong("id")); // fallback:0
 				weiboItem.setIdstr(object.optString("idstr")); // fallback:""
 				weiboItem.setOriginal_pic(object.optString("original_pic")); // fallback:""
-				JSONArray pic_urlsaArray = object.optJSONArray("pic_urls"); // fallback:null
-				if (array != null) {
+				JSONArray pic_urlsArray = object.optJSONArray("pic_urls"); // fallback:null
+				if (pic_urlsArray != null) {
 					ArrayList<String> pic_urls = new ArrayList<String>();
-					for (int j = 0; j < pic_urlsaArray.length(); j++) {
+					for (int j = 0; j < pic_urlsArray.length(); j++) {
 						pic_urls.add(array.getString(j));
 					}
 					weiboItem.setPic_urls(pic_urls);
 				}
 				weiboItem.setReposts_count(object.optInt("reposts_count"));
+				// weiboItem.setRetweeted_status(retweeted_status)
 				// //TODO: 暂时不实现
 				weiboItem.setSource(object.optString("source"));
 				weiboItem.setText(object.optString("text"));
 				weiboItem.setThumbnail_pic(object.optString("thumbnail_pic"));
 				weiboItem.setTruncated(object.optBoolean("truncated"));
-				// weiboItem.setUser(user); //TODO: 暂时不管
+				weiboItem.setUser(WeiboUser.parseUserFromJsonObject(object.optJSONObject("user")));
 				WeiboVisiblity visiblity = new WeiboVisiblity(object.optInt("visible"));
 				if (visiblity.getType() == WeiboVisiblity.SELECTED_GROUP) {
 					visiblity.setList_id(object.optInt("list_id"));
@@ -201,7 +220,7 @@ public class WeiboDownloader extends AsyncTask<WeiboDownloader.Params, Void, Arr
 				Log.i(TAG, weiboItem.toString());
 				list.add(weiboItem);
 			}
-		} catch (JSONException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 			Log.w(TAG, "parsing weiboitem json error:" + e.toString());
 		}
