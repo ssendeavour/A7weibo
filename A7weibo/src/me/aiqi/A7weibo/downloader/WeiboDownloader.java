@@ -7,20 +7,27 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import javax.net.ssl.X509TrustManager;
+
 import me.aiqi.A7weibo.WeiboListAdapter;
+import me.aiqi.A7weibo.connection.SslClient;
 import me.aiqi.A7weibo.entity.WeiboGeo;
 import me.aiqi.A7weibo.entity.WeiboItem;
 import me.aiqi.A7weibo.entity.WeiboVisiblity;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -103,22 +110,15 @@ public class WeiboDownloader extends AsyncTask<WeiboDownloader.Params, Void, Arr
 	@Override
 	protected ArrayList<WeiboItem> doInBackground(Params... params) {
 		try {
-			StringBuilder sb = new StringBuilder();
 			String url = params[0].buildURL();
 			HttpGet httpGet = new HttpGet(url);
 			Log.i(TAG, "Request weibo:" + url);
-			HttpResponse response = new DefaultHttpClient().execute(httpGet);
+			HttpResponse response = SslClient.getSslClient(new DefaultHttpClient()).execute(httpGet);
 			int statusCode = response.getStatusLine().getStatusCode();
 			if (statusCode == HttpStatus.SC_OK) {
-				InputStream inputStream = response.getEntity().getContent();
-				BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-				String line;
-				while ((line = reader.readLine()) != null) {
-					sb.append(line);
-				}
-				return parseJson(sb.toString());
+				return parseJson(EntityUtils.toString(response.getEntity()));
 			} else {
-				Log.e(TAG, "Failed downloading weibo update " + url + ", status code: " + statusCode);
+				Log.e(TAG, "Failed download weibo items:" + url + ", status code: " + statusCode);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -132,8 +132,13 @@ public class WeiboDownloader extends AsyncTask<WeiboDownloader.Params, Void, Arr
 	 */
 	@Override
 	protected void onPostExecute(ArrayList<WeiboItem> result) {
-		Log.i(TAG, "got " + result.size() + " new weibo, update adapter now");
-		mAdapter.updateWeibolist(result);
+		if (result != null) {
+			Log.i(TAG, "got " + result.size() + " new weibo, update adapter now");
+			mAdapter.updateWeibolist(result);
+		} else {
+			Log.i(TAG, "get nothing");
+		}
+
 		super.onPostExecute(result);
 	}
 
@@ -145,13 +150,12 @@ public class WeiboDownloader extends AsyncTask<WeiboDownloader.Params, Void, Arr
 	 */
 	protected ArrayList<WeiboItem> parseJson(String json) {
 		Log.i(TAG, "json: length: " + json.length());
-	/*	try {
-			OutputStreamWriter outputStreamWriter = new OutputStreamWriter(new FileOutputStream("/sdcard/weibojson.txt"), "UTF-8");
-			outputStreamWriter.write(json);
-			outputStreamWriter.close();
-		} catch (Exception e1) {
-			e1.printStackTrace();
-		}*/
+		/*
+		 * try { OutputStreamWriter outputStreamWriter = new
+		 * OutputStreamWriter(new FileOutputStream("/sdcard/weibojson.txt"),
+		 * "UTF-8"); outputStreamWriter.write(json); outputStreamWriter.close();
+		 * } catch (Exception e1) { e1.printStackTrace(); }
+		 */
 		ArrayList<WeiboItem> list = new ArrayList<WeiboItem>();
 		try {
 			JSONObject object = new JSONObject(json);

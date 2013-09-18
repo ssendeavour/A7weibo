@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Locale;
 
 import me.aiqi.A7weibo.auth.AccessTokenKeeper;
+import me.aiqi.A7weibo.connection.SslClient;
 import me.aiqi.A7weibo.entity.AccessToken;
 import me.aiqi.A7weibo.entity.AppRegInfo;
 import me.aiqi.A7weibo.entity.Consts;
@@ -13,6 +14,7 @@ import me.aiqi.A7weibo.util.AppRegInfoHelper;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
@@ -87,6 +89,12 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 
 				case FINISH_GET_ACCESS_TOKEN_SUCCEEDED:
 					String result = (String) msg.obj;
+					if (result == null) {
+						Log.w(TAG, "fail to get access_token");
+						Toast.makeText(MainActivity.this, "授权失败:无法获得access_token", Toast.LENGTH_SHORT).show();
+						return;
+					}
+					Log.i(TAG, result);
 					try {
 						JSONObject jsonObject = new JSONObject(result);
 						appRegInfo.setUid(jsonObject.getLong(Consts.UID));
@@ -102,7 +110,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 
 					break;
 				case FINISH_GET_ACCESS_TOKEN_FAILED:
-					Toast.makeText(MainActivity.this, "授权失败：获取access_token失败", Toast.LENGTH_SHORT).show();
+					Toast.makeText(MainActivity.this, "授权失败：" + (String)msg.obj, Toast.LENGTH_SHORT).show();
 					break;
 
 				default:
@@ -295,10 +303,16 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 				params.add(new BasicNameValuePair("code", code));
 				try {
 					httpRequest.setEntity(new UrlEncodedFormEntity(params, HTTP.UTF_8));
-					HttpResponse httpResponse = new DefaultHttpClient().execute(httpRequest);
-					if (httpResponse.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+					HttpClient httpClient = SslClient.getSslClient(new DefaultHttpClient());
+					HttpResponse httpResponse = httpClient.execute(httpRequest);
+					int statusCode = httpResponse.getStatusLine().getStatusCode();
+					if (statusCode == HttpStatus.SC_OK) {
 						httpResponse.getEntity();
 						result = EntityUtils.toString(httpResponse.getEntity());
+					}else {
+						String msg = "Fail to get accesstoken, status code" + statusCode;
+						Log.w(TAG, msg);
+						Toast.makeText(MainActivity.this, msg, Toast.LENGTH_SHORT).show();
 					}
 				} catch (Exception e) {
 					e.printStackTrace();

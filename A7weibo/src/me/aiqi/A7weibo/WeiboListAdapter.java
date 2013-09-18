@@ -28,9 +28,11 @@ public class WeiboListAdapter extends BaseAdapter {
 		mContext = context;
 		mAccessToken = ((GlobalVariable) mContext.getApplicationContext()).getAccessToken();
 
-		WeiboDownloader.Params params = new WeiboDownloader.Params();
-		params.put(WeiboDownloader.Params.ACCESS_TOKEN, mAccessToken.getAccessToken());
-		mDownloader.execute(params);
+		if (mAccessToken != null && !mAccessToken.isExpired()) {
+			WeiboDownloader.Params params = new WeiboDownloader.Params();
+			params.put(WeiboDownloader.Params.ACCESS_TOKEN, mAccessToken.getAccessToken());
+			mDownloader.execute(params);
+		}
 	}
 
 	@Override
