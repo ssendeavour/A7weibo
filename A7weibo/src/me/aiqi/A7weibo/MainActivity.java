@@ -30,6 +30,7 @@ import org.json.JSONObject;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Message;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
@@ -55,23 +56,22 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 	public static final String TAG = "MainActivity";
 
 	public static final int TAB_ITEM_NUMBER = 3;
-	public static final int TAB_WEIBO = 0;
-	public static final int TAB_REPLAY_AT = 1;
+	public static final int TAB_COMMENT_AT = 0;
+	public static final int TAB_WEIBO = 1;
 	public static final int TAB_ME = 2;
 
 	protected static final int BEGIN_GET_ACCESS_TOKEN_FROM_CODE = 0x100;
 	protected static final int FINISH_GET_ACCESS_TOKEN_FAILED = 0x101;
 	protected static final int FINISH_GET_ACCESS_TOKEN_SUCCEEDED = 0x102;
 
-	private AppRegInfo appRegInfo = AppRegInfoHelper.getAppRegInfo();
-	private Handler handler;
-	private SsoHandler ssoHandler;
-
+	private AppRegInfo mAppRegInfo = AppRegInfoHelper.getAppRegInfo();
+	private SsoHandler mSsoHandler;
 	private AccessToken mAccessToken;
+
+	private Handler mHandler;
 
 	private SectionsPagerAdapter mSectionsPagerAdapter;
 	private ViewPager mViewPager;
-
 	private WeiboViewFragment mWeiboFragment;
 
 	@Override
@@ -80,44 +80,47 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 		setContentView(R.layout.activity_main);
 
 		initUI();
+		mViewPager.setCurrentItem(TAB_WEIBO);
+
 		// Access Token, Re-authentication if necessary
 		login();
 		Log.i(TAG, "OAuth finished");
 		mWeiboFragment = (WeiboViewFragment) mSectionsPagerAdapter.getItem(TAB_WEIBO);
 
-		handler = new Handler() {
-			public void handleMessage(android.os.Message msg) {
-				switch (msg.what) {
-				case BEGIN_GET_ACCESS_TOKEN_FROM_CODE:
+		mHandler = new MyHandler();
+	}
 
-					break;
+	protected class MyHandler extends Handler {
+		public void handleMessage(android.os.Message msg) {
+			switch (msg.what) {
+			case BEGIN_GET_ACCESS_TOKEN_FROM_CODE:
+				break;
 
-				case FINISH_GET_ACCESS_TOKEN_SUCCEEDED:
-					Toast.makeText(MainActivity.this, "授权成功!", Toast.LENGTH_SHORT).show();
+			case FINISH_GET_ACCESS_TOKEN_SUCCEEDED:
+				Toast.makeText(MainActivity.this, "授权成功!", Toast.LENGTH_SHORT).show();
 
-					if (mWeiboFragment == null) {
-						Log.w(TAG, "mWeiboFragment is null");
-					} else {
-						WeiboListAdapter adapter = (WeiboListAdapter) mWeiboFragment.getListAdapter();
-						if (adapter == null) {
-							Log.w(TAG, "WeiboListAdapter is null");
-							adapter = new WeiboListAdapter(MainActivity.this);
-							mWeiboFragment.setListAdapter(adapter);
-						}
-						WeiboDownloader.Params params = new WeiboDownloader.Params();
-						params.put(WeiboDownloader.Params.ACCESS_TOKEN, mAccessToken.getAccessToken());
-						adapter.getWeiboItems(params);
+				if (mWeiboFragment == null) {
+					Log.w(TAG, "mWeiboFragment is null");
+				} else {
+					WeiboListAdapter adapter = (WeiboListAdapter) mWeiboFragment.getListAdapter();
+					if (adapter == null) {
+						Log.w(TAG, "WeiboListAdapter is null, set a new one");
+						adapter = new WeiboListAdapter(MainActivity.this);
+						mWeiboFragment.setListAdapter(adapter);
 					}
-
-					break;
-				case FINISH_GET_ACCESS_TOKEN_FAILED:
-					Toast.makeText(MainActivity.this, "授权失败：" + (msg == null ? "" : (String) msg.obj), Toast.LENGTH_SHORT).show();
-					break;
-
-				default:
-					break;
+					WeiboDownloader.Params params = new WeiboDownloader.Params();
+					params.put(WeiboDownloader.Params.ACCESS_TOKEN, mAccessToken.getAccessToken());
+					adapter.getWeiboItems(params);
 				}
-			};
+
+				break;
+			case FINISH_GET_ACCESS_TOKEN_FAILED:
+				Toast.makeText(MainActivity.this, "授权失败：" + (msg == null ? "" : (String) msg.obj), Toast.LENGTH_SHORT).show();
+				break;
+
+			default:
+				break;
+			}
 		};
 	}
 
@@ -210,12 +213,12 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 		public CharSequence getPageTitle(int position) {
 			Locale l = Locale.getDefault();
 			switch (position) {
-			case 0:
-				return getString(R.string.title_section1).toUpperCase(l);
-			case 1:
-				return getString(R.string.title_section2).toUpperCase(l);
-			case 2:
-				return getString(R.string.title_section3).toUpperCase(l);
+			case TAB_WEIBO:
+				return getString(R.string.title_section_weibo).toUpperCase(l);
+			case TAB_COMMENT_AT:
+				return getString(R.string.title_section_comment_at).toUpperCase(l);
+			case TAB_ME:
+				return getString(R.string.title_section_me).toUpperCase(l);
 			}
 			return null;
 		}
@@ -274,8 +277,8 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 		Log.i(TAG, appInfo.toString());
 		String SCOPE = "direct_messages_read,direct_messages_write," + "statuses_to_me_read," + "follow_app_official_microblog";
 		Weibo weibo = Weibo.getInstance(appInfo.getAppKey(), appInfo.getAppUrl(), SCOPE);
-		ssoHandler = new SsoHandler(this, weibo);
-		ssoHandler.authorize(new WeiboAuthListener() {
+		mSsoHandler = new SsoHandler(this, weibo);
+		mSsoHandler.authorize(new WeiboAuthListener() {
 
 			@Override
 			public void onWeiboException(WeiboException arg0) {
@@ -319,8 +322,8 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 	@Override
 	protected void onActivityResult(int arg0, int arg1, Intent arg2) {
 		super.onActivityResult(arg0, arg1, arg2);
-		if (ssoHandler != null) {
-			ssoHandler.authorizeCallBack(arg0, arg1, arg2);
+		if (mSsoHandler != null) {
+			mSsoHandler.authorizeCallBack(arg0, arg1, arg2);
 		}
 	}
 
@@ -328,15 +331,15 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 		new Thread() {
 			public void run() {
 				boolean succeed = true;
-				handler.sendMessage(handler.obtainMessage(BEGIN_GET_ACCESS_TOKEN_FROM_CODE));
+				mHandler.sendMessage(mHandler.obtainMessage(BEGIN_GET_ACCESS_TOKEN_FROM_CODE));
 				String url = "https://api.weibo.com/oauth2/access_token";
 				String result = null;
 				HttpPost httpRequest = new HttpPost(url);
 				List<NameValuePair> params = new ArrayList<NameValuePair>();
-				params.add(new BasicNameValuePair("client_id", appRegInfo.getAppKey()));
-				params.add(new BasicNameValuePair("client_secret", appRegInfo.getAppSecret()));
+				params.add(new BasicNameValuePair("client_id", mAppRegInfo.getAppKey()));
+				params.add(new BasicNameValuePair("client_secret", mAppRegInfo.getAppSecret()));
 				params.add(new BasicNameValuePair("grant_type", "authorization_code"));
-				params.add(new BasicNameValuePair("redirect_uri", appRegInfo.getAppUrl()));
+				params.add(new BasicNameValuePair("redirect_uri", mAppRegInfo.getAppUrl()));
 				params.add(new BasicNameValuePair("code", code));
 				try {
 					httpRequest.setEntity(new UrlEncodedFormEntity(params, HTTP.UTF_8));
@@ -355,14 +358,14 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 				} catch (Exception e) {
 					succeed = false;
 					e.printStackTrace();
-					handler.sendMessage(handler.obtainMessage(FINISH_GET_ACCESS_TOKEN_FAILED, e.getMessage()));
+					mHandler.sendMessage(mHandler.obtainMessage(FINISH_GET_ACCESS_TOKEN_FAILED, e.getMessage()));
 					Log.e(TAG, e.getMessage());
 					return;
 				}
 				Log.i(TAG, result);
 				try {
 					JSONObject jsonObject = new JSONObject(result);
-					appRegInfo.setUid(jsonObject.getLong(Consts.UID));
+					mAppRegInfo.setUid(jsonObject.getLong(Consts.UID));
 					mAccessToken.setAccessToken(jsonObject.getString(Consts.ACCESS_TOKEN));
 					mAccessToken.setExpireTimeFromExpiresIn(jsonObject.getLong(Consts.EXPIRES_IN));
 
@@ -373,7 +376,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 					e.printStackTrace();
 					succeed = false;
 				}
-				handler.sendMessage(handler.obtainMessage(succeed ? FINISH_GET_ACCESS_TOKEN_SUCCEEDED : FINISH_GET_ACCESS_TOKEN_FAILED));
+				mHandler.sendMessage(mHandler.obtainMessage(succeed ? FINISH_GET_ACCESS_TOKEN_SUCCEEDED : FINISH_GET_ACCESS_TOKEN_FAILED));
 			};
 		}.start();
 	}

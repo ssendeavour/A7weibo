@@ -47,7 +47,7 @@ public class ImageDownloader extends AsyncTask<ImageDownloader.Params, Void, Bit
 		Bitmap bitmap = null;
 		try {
 			URLConnection conn = new URL(url).openConnection();
-			conn.setConnectTimeout(10);
+			conn.setConnectTimeout(10000);
 			conn.setReadTimeout(30000);
 			bitmap = BitmapFactory.decodeStream((InputStream) conn.getContent());
 		} catch (Exception e) {
