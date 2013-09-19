@@ -102,8 +102,7 @@ public class WeiboListAdapter extends BaseAdapter {
 		WeiboUser user = weiboItem.getUser();
 		if (user != null) {
 			tv_nickname.setText(user.getScreen_name());
-			ImageDownloader.Params params = new ImageDownloader.Params(user.getProfile_image_url(), iv_avatar);
-			new ImageDownloader().execute(params);
+			new ImageDownloader().download(user.getProfile_image_url(), iv_avatar);
 		}
 
 		tv_source.setText(Html.fromHtml("来自" + weiboItem.getSource() + " " + weiboItem.getCreated_at()));
