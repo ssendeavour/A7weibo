@@ -20,7 +20,6 @@
 
 package me.aiqi.A7weibo.network;
 
-import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.ref.SoftReference;
@@ -106,9 +105,10 @@ public class ImageDownloader {
 		if (cancelPotentialDownload(url, imageView)) {
 			switch (mode) {
 			case NO_ASYNC_TASK:
-				Bitmap bitmap = downloadBitmap(url);
-				addBitmapToCache(url, bitmap);
-				imageView.setImageBitmap(bitmap);
+				new BitmapDownloaderTask(imageView).execute(url);
+				// Bitmap bitmap = downloadBitmap(url);
+				// addBitmapToCache(url, bitmap);
+				// imageView.setImageBitmap(bitmap);
 				break;
 
 			case NO_DOWNLOADED_DRAWABLE:
@@ -188,7 +188,9 @@ public class ImageDownloader {
 					inputStream = entity.getContent();
 					// return BitmapFactory.decodeStream(inputStream);
 					// Bug on slow connections, fixed in future release.
-					return BitmapFactory.decodeStream(new FlushedInputStream(inputStream));
+					// return BitmapFactory.decodeStream(new
+					// FlushedInputStream(inputStream));
+					return BitmapFactory.decodeStream(inputStream);
 				} finally {
 					if (inputStream != null) {
 						inputStream.close();
@@ -217,30 +219,17 @@ public class ImageDownloader {
 	 * An InputStream that skips the exact number of bytes provided, unless it
 	 * reaches EOF.
 	 */
-	static class FlushedInputStream extends FilterInputStream {
-		public FlushedInputStream(InputStream inputStream) {
-			super(inputStream);
-		}
-
-		@Override
-		public long skip(long n) throws IOException {
-			long totalBytesSkipped = 0L;
-			while (totalBytesSkipped < n) {
-				long bytesSkipped = in.skip(n - totalBytesSkipped);
-				if (bytesSkipped == 0L) {
-					int b = read();
-					if (b < 0) {
-						break; // we reached EOF
-					} else {
-						bytesSkipped = 1; // we read one byte
-					}
-				}
-				totalBytesSkipped += bytesSkipped;
-			}
-			return totalBytesSkipped;
-		}
-	}
-
+	/*
+	 * static class FlushedInputStream extends FilterInputStream { public
+	 * FlushedInputStream(InputStream inputStream) { super(inputStream); }
+	 * 
+	 * @Override public long skip(long n) throws IOException { long
+	 * totalBytesSkipped = 0L; while (totalBytesSkipped < n) { long bytesSkipped
+	 * = in.skip(n - totalBytesSkipped); if (bytesSkipped == 0L) { int b =
+	 * read(); if (b < 0) { break; // we reached EOF } else { bytesSkipped = 1;
+	 * // we read one byte } } totalBytesSkipped += bytesSkipped; } return
+	 * totalBytesSkipped; } }
+	 */
 	/**
 	 * The actual AsyncTask that will asynchronously download the image.
 	 */
@@ -301,7 +290,7 @@ public class ImageDownloader {
 		private final WeakReference<BitmapDownloaderTask> bitmapDownloaderTaskReference;
 
 		public DownloadedDrawable(BitmapDownloaderTask bitmapDownloaderTask) {
-			super(Color.BLACK);
+			super(Color.CYAN);
 			bitmapDownloaderTaskReference = new WeakReference<BitmapDownloaderTask>(bitmapDownloaderTask);
 		}
 

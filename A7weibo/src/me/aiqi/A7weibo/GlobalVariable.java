@@ -8,6 +8,7 @@ public class GlobalVariable extends Application {
 
 	public GlobalVariable() {
 		super();
+		accessToken = new AccessToken();
 	}
 
 	public AccessToken getAccessToken() {

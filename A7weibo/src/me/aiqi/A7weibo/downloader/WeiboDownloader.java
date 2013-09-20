@@ -1,23 +1,13 @@
 package me.aiqi.A7weibo.downloader;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
+import java.text.BreakIterator;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
-import javax.net.ssl.X509TrustManager;
-
+import me.aiqi.A7weibo.GlobalVariable;
 import me.aiqi.A7weibo.WeiboListAdapter;
-import me.aiqi.A7weibo.entity.WeiboGeo;
+import me.aiqi.A7weibo.entity.AccessToken;
 import me.aiqi.A7weibo.entity.WeiboItem;
 import me.aiqi.A7weibo.entity.WeiboUser;
 import me.aiqi.A7weibo.entity.WeiboVisiblity;
@@ -25,29 +15,28 @@ import me.aiqi.A7weibo.network.SslClient;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
-import org.json.JSONTokener;
 
+import android.content.Context;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.text.TextUtils;
-import android.util.JsonReader;
 import android.util.Log;
 
 public class WeiboDownloader extends AsyncTask<WeiboDownloader.Params, Void, ArrayList<WeiboItem>> {
 
 	private static final String TAG = "WeiboDownloader";
 	private WeiboListAdapter mAdapter;
+	private Context mContext;
 	private boolean isRunning = false;
 
-	public WeiboDownloader(WeiboListAdapter adapter) {
+	public WeiboDownloader(WeiboListAdapter adapter, Context context) {
 		mAdapter = adapter;
+		mContext = context;
 	}
 
 	public static class Params {
@@ -101,6 +90,10 @@ public class WeiboDownloader extends AsyncTask<WeiboDownloader.Params, Void, Arr
 			return mMap.put(key, value);
 		}
 
+		public String get(String key) {
+			return mMap.get(key);
+		}
+
 		public void clear() {
 			mMap.clear();
 		}
@@ -118,6 +111,10 @@ public class WeiboDownloader extends AsyncTask<WeiboDownloader.Params, Void, Arr
 
 	@Override
 	protected ArrayList<WeiboItem> doInBackground(Params... params) {
+		AccessToken accessToken = ((GlobalVariable) mContext.getApplicationContext()).getAccessToken();
+		if (accessToken == null || accessToken.isExpired()) {
+			return null;
+		}
 		try {
 			String url = params[0].buildURL();
 			HttpGet httpGet = new HttpGet(url);

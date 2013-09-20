@@ -4,12 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import me.aiqi.A7weibo.downloader.WeiboDownloader;
+import me.aiqi.A7weibo.downloader.WeiboDownloader.Params;
 import me.aiqi.A7weibo.entity.AccessToken;
 import me.aiqi.A7weibo.entity.WeiboItem;
 import me.aiqi.A7weibo.entity.WeiboUser;
 import me.aiqi.A7weibo.network.ImageDownloader;
 
 import android.content.Context;
+import android.os.Handler;
 import android.text.Html;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -18,17 +20,24 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ListAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
 public class WeiboListAdapter extends BaseAdapter {
 	private static final String TAG = "WeiboListAdapter";
 	private Context mContext;
-	private List<WeiboItem> mWeiboItems = new ArrayList<WeiboItem>();
-	private WeiboDownloader mDownloader = new WeiboDownloader(this);
+	private List<WeiboItem> mWeiboItems;
+	private WeiboDownloader mDownloader;
 
 	public WeiboListAdapter(Context context) {
 		mContext = context;
+		mWeiboItems = new ArrayList<WeiboItem>();
+		mDownloader = new WeiboDownloader(this, context);
+		
+		WeiboDownloader.Params params = new WeiboDownloader.Params();
+		params.put(WeiboDownloader.Params.ACCESS_TOKEN, ((GlobalVariable) mContext.getApplicationContext()).getAccessToken().getAccessToken());
+		mDownloader.execute(params);
 	}
 
 	@Override
