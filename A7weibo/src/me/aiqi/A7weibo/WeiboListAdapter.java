@@ -1,5 +1,6 @@
 package me.aiqi.A7weibo;
 
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -9,6 +10,7 @@ import me.aiqi.A7weibo.entity.AccessToken;
 import me.aiqi.A7weibo.entity.WeiboItem;
 import me.aiqi.A7weibo.entity.WeiboUser;
 import me.aiqi.A7weibo.network.ImageDownloader;
+import me.aiqi.A7weibo.util.WbUtil;
 
 import android.content.Context;
 import android.os.Handler;
@@ -34,7 +36,7 @@ public class WeiboListAdapter extends BaseAdapter {
 		mContext = context;
 		mWeiboItems = new ArrayList<WeiboItem>();
 		mDownloader = new WeiboDownloader(this, context);
-		
+
 		WeiboDownloader.Params params = new WeiboDownloader.Params();
 		params.put(WeiboDownloader.Params.ACCESS_TOKEN, ((GlobalVariable) mContext.getApplicationContext()).getAccessToken().getAccessToken());
 		mDownloader.execute(params);
@@ -114,7 +116,13 @@ public class WeiboListAdapter extends BaseAdapter {
 			new ImageDownloader().download(user.getProfile_image_url(), iv_avatar);
 		}
 
-		tv_source.setText(Html.fromHtml("来自" + weiboItem.getSource() + " " + weiboItem.getCreated_at()));
+		String createTimeString = WbUtil.getTimeString(weiboItem.getCreated_at());
+		if (createTimeString == null) {
+			createTimeString = weiboItem.getCreated_at();
+		}
+		Log.d(TAG, createTimeString);
+
+		tv_source.setText(Html.fromHtml("<font color='#FFCC00'>" + createTimeString + "</font> 来自" + weiboItem.getSource()));
 		tv_weibo_content.setText(weiboItem.getText());
 		btn_comment.setText("评论(" + weiboItem.getComments_count() + ")");
 		btn_forawrd.setText("转发(" + weiboItem.getReposts_count() + ")");

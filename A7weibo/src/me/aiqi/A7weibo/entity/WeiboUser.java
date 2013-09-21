@@ -346,7 +346,7 @@ public class WeiboUser {
 		user.setVerified(jsonObject.optBoolean("verified"));
 		user.setVerified_reason(jsonObject.optString("verified_reason"));
 		user.setWeihao(jsonObject.optString("weihao"));
-		Log.i(TAG, user.toString());
+//		Log.d(TAG, user.toString());
 		return user;
 	}
 }

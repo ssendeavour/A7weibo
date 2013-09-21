@@ -75,7 +75,7 @@ public class Authentication {
 		// String SCOPE = "direct_messages_read,direct_messages_write," +
 		// "statuses_to_me_read," + "follow_app_official_microblog";
 		Weibo weibo = Weibo.getInstance(appInfo.getAppKey(), appInfo.getAppUrl(), null);
-		new SsoHandler((Activity) context, weibo).authorize(new WeiboAuthListener() {
+		weibo.anthorize(context, new WeiboAuthListener() {
 
 			@Override
 			public void onWeiboException(WeiboException arg0) {
@@ -113,9 +113,9 @@ public class Authentication {
 				Log.i(TAG, msg);
 				isRunning = false;
 			}
-		}, null);
+		});
 	}
-	
+
 	/**
 	 * get access token, and save it in global application space
 	 * 
