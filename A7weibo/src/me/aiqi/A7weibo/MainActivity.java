@@ -43,7 +43,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 
 	private SectionsPagerAdapter mSectionsPagerAdapter;
 	private ViewPager mViewPager;
-	private WeiboViewFragment mWeiboFragment;
+	private WeiboListFragment mWeiboFragment;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -57,7 +57,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 
 		mViewPager.setCurrentItem(TAB_WEIBO);
 		Log.i(TAG, "OAuth finished");
-		mWeiboFragment = (WeiboViewFragment) mSectionsPagerAdapter.getItem(TAB_WEIBO);
+		mWeiboFragment = (WeiboListFragment) mSectionsPagerAdapter.getItem(TAB_WEIBO);
 
 		mHandler = new MyHandler();
 	}
@@ -161,7 +161,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 		public Fragment getItem(int position) {
 			Fragment fragment = null;
 			if (position == TAB_WEIBO) {
-				fragment = new WeiboViewFragment();
+				fragment = new WeiboListFragment();
 			} else {
 				fragment = new DummySectionFragment();
 				Bundle args = new Bundle();

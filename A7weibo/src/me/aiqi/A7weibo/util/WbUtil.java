@@ -48,7 +48,7 @@ public class WbUtil {
 		java.text.DateFormat df = new SimpleDateFormat("EEE MMM dd HH:mm:ss Z yyyy", Locale.ENGLISH);
 		Calendar cal = Calendar.getInstance();
 		cal.setTime(df.parse(dateString));
-		Log.d(TAG, cal.getTime().toString());
+		Log.v(TAG, cal.getTime().toString());
 		return cal;
 	}
 
@@ -83,8 +83,6 @@ public class WbUtil {
 			yesterDay.setTime(now.getTime());
 			yesterDay.add(Calendar.DAY_OF_YEAR, -1); // also work for date like
 														// January 1st.
-			Log.d(TAG, "yesterday: " + yesterDay.getTime().toString());
-			Log.d(TAG, "now: " + now.getTime().toString());
 			if (date.get(Calendar.YEAR) == now.get(Calendar.YEAR) && date.get(Calendar.DAY_OF_YEAR) == now.get(Calendar.DAY_OF_YEAR)) {
 				// today
 				SimpleDateFormat sdf = new SimpleDateFormat("HH:mm", Locale.ENGLISH);
@@ -108,7 +106,7 @@ public class WbUtil {
 	 * and getUserFriendlyTime
 	 * 
 	 * @param dateString
-	 * @return
+	 * @return converted user-friendly data string, null if parse fail
 	 */
 	public static String getTimeString(String dateString) {
 		String result = null;

@@ -1,20 +1,16 @@
 package me.aiqi.A7weibo;
 
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
 import me.aiqi.A7weibo.downloader.WeiboDownloader;
-import me.aiqi.A7weibo.downloader.WeiboDownloader.Params;
-import me.aiqi.A7weibo.entity.AccessToken;
 import me.aiqi.A7weibo.entity.WeiboItem;
 import me.aiqi.A7weibo.entity.WeiboUser;
 import me.aiqi.A7weibo.network.ImageDownloader;
 import me.aiqi.A7weibo.util.WbUtil;
-
 import android.content.Context;
-import android.os.Handler;
 import android.text.Html;
+import android.util.AttributeSet;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -22,9 +18,7 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.ListAdapter;
 import android.widget.TextView;
-import android.widget.Toast;
 
 public class WeiboListAdapter extends BaseAdapter {
 	private static final String TAG = "WeiboListAdapter";
@@ -34,12 +28,18 @@ public class WeiboListAdapter extends BaseAdapter {
 
 	public WeiboListAdapter(Context context) {
 		mContext = context;
-		mWeiboItems = new ArrayList<WeiboItem>();
+		mWeiboItems = readWeiboItemsFromCache();
 		mDownloader = new WeiboDownloader(this, context);
+	}
 
-		WeiboDownloader.Params params = new WeiboDownloader.Params();
-		params.put(WeiboDownloader.Params.ACCESS_TOKEN, ((GlobalVariable) mContext.getApplicationContext()).getAccessToken().getAccessToken());
-		mDownloader.execute(params);
+	/**
+	 * TODO: currently return new empty ArrayList, may read from SQlite in the
+	 * future
+	 * 
+	 * @return
+	 */
+	private ArrayList<WeiboItem> readWeiboItemsFromCache() {
+		return new ArrayList<WeiboItem>();
 	}
 
 	@Override
@@ -57,6 +57,12 @@ public class WeiboListAdapter extends BaseAdapter {
 		return mWeiboItems.get(position).getId();
 	}
 
+	/**
+	 * reuse widgets to reduce call to View.findViewById(), speed up ListView
+	 * 
+	 * @author starfish
+	 * 
+	 */
 	private static class ViewHolder {
 		public final ImageView iv_avatar;
 		public final TextView tv_nickname;
@@ -109,36 +115,50 @@ public class WeiboListAdapter extends BaseAdapter {
 			btn_forawrd = viewHolder.btn_forawrd;
 			btn_like = viewHolder.btn_like;
 		}
+
 		WeiboItem weiboItem = getItem(position);
+		if (weiboItem == null) {
+			// make weibo content green to indicate no weibo info
+			tv_weibo_content.setText(Html.fromHtml("<font color='#00FF00'> 好像出错了=_=<br />没有微博信息</font>"));
+			return convertView;
+		}
 		WeiboUser user = weiboItem.getUser();
 		if (user != null) {
 			tv_nickname.setText(user.getScreen_name());
+			// start async task to set user's avatar
 			new ImageDownloader().download(user.getProfile_image_url(), iv_avatar);
+		} else {
+			// make username to green to indicate no user info found
+			tv_nickname.setText(Html.fromHtml("<font color='#00FF00'>好像出错了=_=<br />没有微博信息</font>"));
+			tv_weibo_content.setText("");
+			return convertView;
 		}
 
 		String createTimeString = WbUtil.getTimeString(weiboItem.getCreated_at());
 		if (createTimeString == null) {
 			createTimeString = weiboItem.getCreated_at();
 		}
-		Log.d(TAG, createTimeString);
+		Log.v(TAG, createTimeString);
 
-		tv_source.setText(Html.fromHtml("<font color='#FFCC00'>" + createTimeString + "</font> 来自" + weiboItem.getSource()));
+		String sourceAndTimeHtmlString = new StringBuilder().append("<font color='#FFCC00'>").append(createTimeString).append("</font> 来自")
+				.append(weiboItem.getSource()).toString();
+		tv_source.setText(Html.fromHtml(sourceAndTimeHtmlString));
 		tv_weibo_content.setText(weiboItem.getText());
-		btn_comment.setText("评论(" + weiboItem.getComments_count() + ")");
-		btn_forawrd.setText("转发(" + weiboItem.getReposts_count() + ")");
-		btn_like.setText("赞(" + weiboItem.getAttitudes_count() + ")");
-		Log.i(TAG, "getView called");
+		btn_comment.setText(new StringBuilder("评论(").append(weiboItem.getComments_count()).append(")").toString());
+		btn_forawrd.setText(new StringBuilder("转发(").append(weiboItem.getReposts_count()).append(")").toString());
+		btn_like.setText(new StringBuilder("赞(").append(weiboItem.getAttitudes_count()).append(")").toString());
 		return convertView;
 	}
 
 	public void updateWeibolist(List<WeiboItem> weiboItems) {
+		// It's fairly rare that weiboItem == mWeiboItem, so we don't check
 		mWeiboItems = weiboItems;
 		notifyDataSetChanged();
 	}
 
 	public void getWeiboItems(WeiboDownloader.Params params) {
 		if (mDownloader.isRunning()) {
-			Log.w(TAG, "another weibo download task running");
+			Log.d(TAG, "another weibo download task is running");
 			return;
 		}
 		mDownloader.execute(params);

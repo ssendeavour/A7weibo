@@ -1,6 +1,5 @@
 package me.aiqi.A7weibo.downloader;
 
-import java.text.BreakIterator;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -118,17 +117,16 @@ public class WeiboDownloader extends AsyncTask<WeiboDownloader.Params, Void, Arr
 		try {
 			String url = params[0].buildURL();
 			HttpGet httpGet = new HttpGet(url);
-			Log.i(TAG, "Request weibo:" + url);
+			Log.v(TAG, "Request weibo:" + url);
 			HttpResponse response = SslClient.getSslClient(new DefaultHttpClient()).execute(httpGet);
 			int statusCode = response.getStatusLine().getStatusCode();
 			if (statusCode == HttpStatus.SC_OK) {
 				return parseJson(EntityUtils.toString(response.getEntity()));
 			} else {
-				Log.e(TAG, "Failed download weibo items:" + url + ", status code: " + statusCode);
+				Log.i(TAG, "Failed download weibo items:" + url + ", status code: " + statusCode);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
-			Log.e(TAG, e.toString());
 		}
 		return null;
 	}
@@ -147,15 +145,14 @@ public class WeiboDownloader extends AsyncTask<WeiboDownloader.Params, Void, Arr
 	 */
 	@Override
 	protected void onPostExecute(ArrayList<WeiboItem> result) {
+		super.onPostExecute(result);
 		if (result != null) {
-			Log.i(TAG, "got " + result.size() + " new weibo, update adapter now");
+			Log.d(TAG, new StringBuilder("got ").append(result.size()).append(" new weibo, update adapter now").toString());
 			mAdapter.updateWeibolist(result);
 		} else {
-			Log.i(TAG, "got nothing");
+			Log.d(TAG, "got nothing");
 		}
 		isRunning = false;
-
-		super.onPostExecute(result);
 	}
 
 	/**
@@ -166,10 +163,10 @@ public class WeiboDownloader extends AsyncTask<WeiboDownloader.Params, Void, Arr
 	 */
 	protected ArrayList<WeiboItem> parseJson(String json) {
 		if (TextUtils.isEmpty(json)) {
-			Log.w(TAG, "json is empty or null");
+			Log.d(TAG, "json is empty or null");
 			return null;
 		}
-		Log.i(TAG, "json: length: " + json.length());
+		Log.v(TAG, "json: length: " + json.length());
 		ArrayList<WeiboItem> list = new ArrayList<WeiboItem>();
 		try {
 			JSONObject object = new JSONObject(json);
@@ -178,10 +175,10 @@ public class WeiboDownloader extends AsyncTask<WeiboDownloader.Params, Void, Arr
 				array = object.optJSONArray("statuses");
 			}
 			if (array == null) {
-				Log.w(TAG, "Error parsing weiboitem json");
+				Log.d(TAG, "Error parsing weiboitem json");
 				return null;
 			}
-			Log.i(TAG, "begin build ArrayList");
+			Log.v(TAG, "begin build ArrayList");
 			for (int i = 0; i < array.length(); i++) {
 				object = (JSONObject) array.get(i);
 				WeiboItem weiboItem = new WeiboItem();
@@ -189,7 +186,7 @@ public class WeiboDownloader extends AsyncTask<WeiboDownloader.Params, Void, Arr
 				weiboItem.setComments_count(object.optInt("comments_count")); // fallback:0
 				weiboItem.setCreated_at(object.optString("created_at")); // fallback:""
 				weiboItem.setFavorited(object.optBoolean("favorited")); // fallback:false
-				// weiboItem.setGeo(); // fallback:null
+				// weiboItem.setGeo(); // fallback:null TODO: 暂时不实现
 				weiboItem.setId(object.optLong("id")); // fallback:0
 				weiboItem.setIdstr(object.optString("idstr")); // fallback:""
 				weiboItem.setOriginal_pic(object.optString("original_pic")); // fallback:""
@@ -203,7 +200,7 @@ public class WeiboDownloader extends AsyncTask<WeiboDownloader.Params, Void, Arr
 				}
 				weiboItem.setReposts_count(object.optInt("reposts_count"));
 				// weiboItem.setRetweeted_status(retweeted_status)
-				// //TODO: 暂时不实现
+				// TODO: 暂时不实现
 				weiboItem.setSource(object.optString("source"));
 				weiboItem.setText(object.optString("text"));
 				weiboItem.setThumbnail_pic(object.optString("thumbnail_pic"));
@@ -214,12 +211,12 @@ public class WeiboDownloader extends AsyncTask<WeiboDownloader.Params, Void, Arr
 					visiblity.setList_id(object.optInt("list_id"));
 				}
 				weiboItem.setVisible(visiblity);
-				Log.d(TAG, weiboItem.toString());
+				Log.v(TAG, weiboItem.toString());
 				list.add(weiboItem);
 			}
 		} catch (Exception e) {
+			Log.w(TAG, "parsing weiboitem json error");
 			e.printStackTrace();
-			Log.w(TAG, "parsing weiboitem json error:" + e.toString());
 		}
 		return list;
 	}

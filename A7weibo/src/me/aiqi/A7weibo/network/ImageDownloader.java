@@ -16,6 +16,8 @@
 
 /*
  * get from: https://android-imagedownloader.googlecode.com/svn/trunk/src/com/example/android/imagedownloader/ImageDownloader.java
+ * see also: http://developer.android.com/training/displaying-bitmaps/process-bitmap.html
+ * 			 http://android-developers.blogspot.com/2010/07/multithreading-for-performance.html
  */
 
 package me.aiqi.A7weibo.network;
