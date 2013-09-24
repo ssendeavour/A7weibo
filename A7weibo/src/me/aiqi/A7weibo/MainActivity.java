@@ -74,7 +74,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 
 			case FINISH_GET_ACCESS_TOKEN_SUCCEEDED:
 				Toast.makeText(MainActivity.this, "授权成功!", Toast.LENGTH_SHORT).show();
-				mAccessToken = ((GlobalVariable) getApplicationContext()).getAccessToken();
+				mAccessToken = ((MyApplication) getApplicationContext()).getAccessToken();
 
 				if (mWeiboFragment == null) {
 					Log.w(TAG, "mWeiboFragment is null");

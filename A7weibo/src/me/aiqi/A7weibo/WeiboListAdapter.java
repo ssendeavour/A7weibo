@@ -3,6 +3,9 @@ package me.aiqi.A7weibo;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.assist.PauseOnScrollListener;
+
 import me.aiqi.A7weibo.downloader.WeiboDownloader;
 import me.aiqi.A7weibo.entity.WeiboItem;
 import me.aiqi.A7weibo.entity.WeiboUser;
@@ -72,7 +75,8 @@ public class WeiboListAdapter extends BaseAdapter {
 		public final Button btn_forawrd;
 		public final Button btn_like;
 
-		public ViewHolder(ImageView iv_avatar, TextView tv_nickname, TextView tv_source, TextView tv_weibo_content, Button btn_comment,
+		public ViewHolder(ImageView iv_avatar, TextView tv_nickname, TextView tv_source, TextView tv_weibo_content,
+				Button btn_comment,
 				Button btn_forawrd, Button btn_like) {
 			super();
 			this.iv_avatar = iv_avatar;
@@ -104,7 +108,8 @@ public class WeiboListAdapter extends BaseAdapter {
 			btn_comment = (Button) convertView.findViewById(R.id.btn_comment);
 			btn_forawrd = (Button) convertView.findViewById(R.id.btn_forawrd);
 			btn_like = (Button) convertView.findViewById(R.id.btn_like);
-			convertView.setTag(new ViewHolder(iv_avatar, tv_nickname, tv_source, tv_weibo_content, btn_comment, btn_forawrd, btn_like));
+			convertView.setTag(new ViewHolder(iv_avatar, tv_nickname, tv_source, tv_weibo_content, btn_comment,
+					btn_forawrd, btn_like));
 		} else {
 			ViewHolder viewHolder = (ViewHolder) convertView.getTag();
 			iv_avatar = viewHolder.iv_avatar;
@@ -126,7 +131,10 @@ public class WeiboListAdapter extends BaseAdapter {
 		if (user != null) {
 			tv_nickname.setText(user.getScreen_name());
 			// start async task to set user's avatar
-			new ImageDownloader().download(user.getProfile_image_url(), iv_avatar);
+			// new ImageDownloader().download(user.getProfile_image_url(),
+			// iv_avatar);
+			ImageLoader.getInstance().displayImage(user.getProfile_image_url(), iv_avatar);
+
 		} else {
 			// make username to green to indicate no user info found
 			tv_nickname.setText(Html.fromHtml("<font color='#00FF00'>好像出错了=_=<br />没有微博信息</font>"));
@@ -140,7 +148,10 @@ public class WeiboListAdapter extends BaseAdapter {
 		}
 		Log.v(TAG, createTimeString);
 
-		String sourceAndTimeHtmlString = new StringBuilder().append("<font color='#FFCC00'>").append(createTimeString).append("</font> 来自")
+		String sourceAndTimeHtmlString = new StringBuilder()
+				.append("<font color='#FFCC00'>")
+				.append(createTimeString)
+				.append("</font> 来自")
 				.append(weiboItem.getSource()).toString();
 		tv_source.setText(Html.fromHtml(sourceAndTimeHtmlString));
 		tv_weibo_content.setText(weiboItem.getText());

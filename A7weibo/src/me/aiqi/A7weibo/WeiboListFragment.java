@@ -1,5 +1,8 @@
 package me.aiqi.A7weibo;
 
+import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.assist.PauseOnScrollListener;
+
 import me.aiqi.A7weibo.downloader.WeiboDownloader;
 import me.aiqi.A7weibo.entity.AccessToken;
 import android.os.Bundle;
@@ -8,6 +11,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AbsListView.OnScrollListener;
 
 public class WeiboListFragment extends ListFragment {
 	private static final String TAG = "WeiboViewFragment";
@@ -37,7 +41,9 @@ public class WeiboListFragment extends ListFragment {
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
-		AccessToken accessToken = ((GlobalVariable) getActivity().getApplicationContext()).getAccessToken();
+
+		getListView().setOnScrollListener(new PauseOnScrollListener(ImageLoader.getInstance(), false, true));
+		AccessToken accessToken = ((MyApplication) getActivity().getApplicationContext()).getAccessToken();
 
 		if (!accessToken.isExpired() && mWeiboListdapter.getCount() == 0) {
 			Log.v(TAG, "WeiboListAdapter is empty, try load new weibo items");
@@ -48,4 +54,5 @@ public class WeiboListFragment extends ListFragment {
 			Log.v(TAG, "WeiboListAdapter items count: " + mWeiboListdapter.getCount());
 		}
 	}
+
 }

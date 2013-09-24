@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import me.aiqi.A7weibo.GlobalVariable;
+import me.aiqi.A7weibo.MyApplication;
 import me.aiqi.A7weibo.WeiboListAdapter;
 import me.aiqi.A7weibo.entity.AccessToken;
 import me.aiqi.A7weibo.entity.WeiboItem;
@@ -110,7 +110,7 @@ public class WeiboDownloader extends AsyncTask<WeiboDownloader.Params, Void, Arr
 
 	@Override
 	protected ArrayList<WeiboItem> doInBackground(Params... params) {
-		AccessToken accessToken = ((GlobalVariable) mContext.getApplicationContext()).getAccessToken();
+		AccessToken accessToken = ((MyApplication) mContext.getApplicationContext()).getAccessToken();
 		if (accessToken == null || accessToken.isExpired()) {
 			return null;
 		}

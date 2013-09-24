@@ -22,7 +22,7 @@ import com.weibo.sdk.android.WeiboDialogError;
 import com.weibo.sdk.android.WeiboException;
 import com.weibo.sdk.android.sso.SsoHandler;
 
-import me.aiqi.A7weibo.GlobalVariable;
+import me.aiqi.A7weibo.MyApplication;
 import me.aiqi.A7weibo.MainActivity;
 import me.aiqi.A7weibo.entity.AccessToken;
 import me.aiqi.A7weibo.entity.AppRegInfo;
@@ -55,7 +55,7 @@ public class Authentication {
 			Log.i(TAG, "access_token is valid. Expire time: " + accessToken.getExpireTimeString());
 			isRunning = false;
 			// store new access token to application-wide range
-			((GlobalVariable) context.getApplicationContext()).setAccessToken(accessToken);
+			((MyApplication) context.getApplicationContext()).setAccessToken(accessToken);
 		}
 	}
 
@@ -169,7 +169,7 @@ public class Authentication {
 					accessToken.setExpireTimeFromExpiresIn(jsonObject.getLong(Consts.EXPIRES_IN));
 
 					AccessTokenKeeper.keepAccessToken(context, accessToken);
-					((GlobalVariable) context.getApplicationContext()).setAccessToken(accessToken);
+					((MyApplication) context.getApplicationContext()).setAccessToken(accessToken);
 					Log.i(TAG, accessToken.toString());
 				} catch (JSONException e) {
 					Log.w(TAG, "Error parsing authentication json");
