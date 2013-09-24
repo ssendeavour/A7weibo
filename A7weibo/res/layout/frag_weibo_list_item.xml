@@ -43,24 +43,16 @@
                 android:layout_weight="3"
                 android:gravity="center_vertical"
                 android:singleLine="true"
-                android:textSize="10sp"
-                android:text="来自A7weibo" />
+                android:text="来自A7weibo"
+                android:textSize="10sp" />
         </LinearLayout>
     </RelativeLayout>
-
-    <!--
-         <ProgressBar
-        android:layout_width="match_parent"
-        android:layout_height="3dp"
-        android:layout_marginBottom="5dp"
-        android:layout_marginTop="5dp"
-        android:background="#EEE" />
-    -->
 
     <TextView
         android:id="@+id/tv_weibo_content"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="#FFF"
         android:padding="8dp"
         android:text="A7Weibo微博正文"
         android:textColor="#000"
@@ -69,39 +61,58 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="#EEE"
         android:orientation="horizontal" >
+
+        <!-- forward button -->
 
         <Button
             android:id="@+id/btn_forawrd"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="32dp"
             android:layout_gravity="center_horizontal"
+            android:layout_marginRight="8dp"
             android:layout_weight="1"
-            android:padding="0dp"
+            android:background="#FFF"
+            android:drawableLeft="@drawable/toolbar_icon_retweet"
+            android:paddingLeft="8dp"
             android:singleLine="true"
-            android:text="转发(100)"
+            android:text="100"
+            android:textColor="#000"
             android:textSize="14sp" />
+
+        <!-- comment button -->
 
         <Button
             android:id="@+id/btn_comment"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="32dp"
             android:layout_gravity="center_horizontal"
+            android:layout_marginRight="8dp"
             android:layout_weight="1"
-            android:padding="0dp"
+            android:background="#FFF"
+            android:drawableLeft="@drawable/toolbar_icon_comment"
             android:singleLine="true"
-            android:text="评论(100)"
+            android:text="100"
+            android:textColor="#000"
             android:textSize="14sp" />
+
+        <!-- like button -->
 
         <Button
             android:id="@+id/btn_like"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="32dp"
             android:layout_gravity="center_horizontal"
+            android:layout_marginRight="8dp"
             android:layout_weight="1"
-            android:padding="0dp"
+            android:background="#FFF"
+            android:drawableLeft="@drawable/toolbar_icon_like"
+            android:gravity="center"
+            android:paddingLeft="8dp"
             android:singleLine="true"
             android:text="赞(100)"
+            android:textColor="#000"
             android:textSize="14sp" />
     </LinearLayout>
 

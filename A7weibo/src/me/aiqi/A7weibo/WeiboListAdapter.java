@@ -144,9 +144,9 @@ public class WeiboListAdapter extends BaseAdapter {
 				.append(weiboItem.getSource()).toString();
 		tv_source.setText(Html.fromHtml(sourceAndTimeHtmlString));
 		tv_weibo_content.setText(weiboItem.getText());
-		btn_comment.setText(new StringBuilder("评论(").append(weiboItem.getComments_count()).append(")").toString());
-		btn_forawrd.setText(new StringBuilder("转发(").append(weiboItem.getReposts_count()).append(")").toString());
-		btn_like.setText(new StringBuilder("赞(").append(weiboItem.getAttitudes_count()).append(")").toString());
+		btn_comment.setText(weiboItem.getComments_count() == 0 ? "评论" : String.valueOf(weiboItem.getComments_count()));
+		btn_forawrd.setText(weiboItem.getReposts_count() == 0 ? "转发" : String.valueOf(weiboItem.getReposts_count()));
+		btn_like.setText(weiboItem.getAttitudes_count() == 0 ? "赞" : String.valueOf(weiboItem.getAttitudes_count()));
 		return convertView;
 	}
 
