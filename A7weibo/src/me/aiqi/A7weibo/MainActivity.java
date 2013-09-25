@@ -1,12 +1,32 @@
 package me.aiqi.A7weibo;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
-import me.aiqi.A7weibo.auth.Authentication;
+import me.aiqi.A7weibo.auth.AccessTokenKeeper;
 import me.aiqi.A7weibo.downloader.WeiboDownloader;
 import me.aiqi.A7weibo.entity.AccessToken;
 import me.aiqi.A7weibo.entity.AppRegInfo;
+import me.aiqi.A7weibo.entity.Consts;
+import me.aiqi.A7weibo.network.SslClient;
 import me.aiqi.A7weibo.util.AppRegInfoHelper;
+
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.protocol.HTTP;
+import org.apache.http.util.EntityUtils;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -24,22 +44,48 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.weibo.sdk.android.Weibo;
+import com.weibo.sdk.android.WeiboAuthListener;
+import com.weibo.sdk.android.WeiboDialogError;
+import com.weibo.sdk.android.WeiboException;
 import com.weibo.sdk.android.sso.SsoHandler;
 
+@SuppressLint("HandlerLeak")
 public class MainActivity extends ActionBarActivity implements ActionBar.TabListener {
+	public static final String TAG = MainActivity.class.getSimpleName();
 
-	public static final String TAG = "MainActivity";
+	public static final int GET_ACCESS_TOKEN_FROM_CODE_START = 0x100;
+	/**
+	 * msg.obj should set to responding HTTP status code ({@code int}).<br />
+	 * see also {@link GET_ACCESS_TOKEN_FROM_CODE_EXCEPTION}
+	 */
+	public static final int GET_ACCESS_TOKEN_FROM_CODE_FAILED = 0x101;
+	/** msg.obj is not used in handleMessage */
+	public static final int GET_ACCESS_TOKEN_FROM_CODE_SUCCEED = 0x102;
+	/**
+	 * msg.obj should set to a text description. <br />
+	 * see also {@link GET_ACCESS_TOKEN_FROM_CODE_FAILED}
+	 */
+	public static final int GET_ACCESS_TOKEN_FROM_CODE_EXCEPTION = 0x103;
+	/** msg.obj is not used in handleMessage */
+	public static final int GET_ACCESS_TOKEN_FROM_CODE_PARSE_JSON_EXCEPTION = 0x104;
+
+	public static final int OAUTH_WEIBO_EXCEPTION = 0x110;
+	public static final int OAUTH_APP_KEY_NOT_FOUND = 0x111;
+	public static final int OAUTH_CANCELED = 0x112;
+	public static final int OAUTH_SUCCEED = 0x113;
+	public static final int OAUTH_ERROR = 0x114;
+	public static final int OAUTH_GOT_ACCESS_CODE = 0x115;
+	public static final int OAUTH_FAILED = 0x116;
 
 	public static final int TAB_ITEM_NUMBER = 3;
 	public static final int TAB_COMMENT_AT = 1;
 	public static final int TAB_WEIBO = 0;
 	public static final int TAB_ME = 2;
 
-	private AppRegInfo mAppRegInfo = AppRegInfoHelper.getAppRegInfo();
 	private SsoHandler mSsoHandler;
 	private AccessToken mAccessToken;
-
-	public Handler mHandler;
+	private Handler mHandler;
 
 	private SectionsPagerAdapter mSectionsPagerAdapter;
 	private ViewPager mViewPager;
@@ -52,74 +98,245 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 
 		initUI();
 
-		// Access Token, Re-authentication if necessary
-		Authentication.login(this, mHandler);
+		/*
+		 * message handler for OAuth 2.0 things It's life cycle is the same as
+		 * the application, will not leak memory
+		 */
+		mHandler = new Handler() {
+			public void handleMessage(android.os.Message msg) {
+				switch (msg.what) {
+				case GET_ACCESS_TOKEN_FROM_CODE_START:
+					break;
+
+				case GET_ACCESS_TOKEN_FROM_CODE_SUCCEED:
+					Toast.makeText(MainActivity.this, "授权成功!", Toast.LENGTH_SHORT).show();
+					mAccessToken = ((MyApplication) getApplicationContext()).getAccessToken();
+					if (mWeiboFragment == null) {
+						Log.d(TAG, "mWeiboFragment is null");
+					} else {
+						WeiboListAdapter adapter = (WeiboListAdapter) mWeiboFragment.getListAdapter();
+						if (adapter == null) {
+							Log.d(TAG, "WeiboListAdapter is null, set a new one");
+							adapter = new WeiboListAdapter(MainActivity.this);
+							mWeiboFragment.setListAdapter(adapter);
+						}
+						WeiboDownloader.Params params = new WeiboDownloader.Params();
+						params.put(WeiboDownloader.Params.ACCESS_TOKEN, mAccessToken.getAccessToken());
+						adapter.getWeiboItems(params);
+					}
+					break;
+
+				case GET_ACCESS_TOKEN_FROM_CODE_FAILED:
+					String msgString = "授权失败：http code: " + (java.lang.Integer) msg.obj;
+					Toast.makeText(MainActivity.this, msgString, Toast.LENGTH_SHORT).show();
+					Log.w(TAG, msgString);
+					break;
+
+				case GET_ACCESS_TOKEN_FROM_CODE_PARSE_JSON_EXCEPTION:
+					String msgString1 = "授权失败:解析json出错";
+					Toast.makeText(MainActivity.this, msgString1, Toast.LENGTH_SHORT).show();
+					Log.w(TAG, msgString1);
+
+				case OAUTH_APP_KEY_NOT_FOUND:
+					Toast.makeText(MainActivity.this, "no app key found", Toast.LENGTH_SHORT).show();
+					Log.i(TAG, "no app key found");
+					break;
+
+				case OAUTH_WEIBO_EXCEPTION:
+					Toast.makeText(MainActivity.this, (String) msg.obj, Toast.LENGTH_SHORT).show();
+					Log.i(TAG, (String) msg.obj);
+					break;
+
+				case OAUTH_ERROR:
+					Toast.makeText(MainActivity.this, (String) msg.obj, Toast.LENGTH_SHORT).show();
+					Log.w(TAG, (String) msg.obj);
+
+				case OAUTH_GOT_ACCESS_CODE:
+					Log.v(TAG, "Access code:" + (String) msg.obj);
+					break;
+
+				case OAUTH_FAILED:
+					Toast.makeText(MainActivity.this, (String) msg.obj, Toast.LENGTH_SHORT).show();
+					Log.w(TAG, (String) msg.obj);
+					break;
+
+				case OAUTH_CANCELED:
+					Toast.makeText(MainActivity.this, "授权已取消", Toast.LENGTH_SHORT).show();
+					Log.w(TAG, "授权已取消");
+					break;
+
+				default:
+					break;
+				}
+			};
+		};
 
 		mViewPager.setCurrentItem(TAB_WEIBO);
-		Log.i(TAG, "OAuth finished");
 		mWeiboFragment = (WeiboListFragment) mSectionsPagerAdapter.getItem(TAB_WEIBO);
-
-		mHandler = new MyHandler();
-	}
-
-	public class MyHandler extends Handler {
-		public static final int BEGIN_GET_ACCESS_TOKEN_FROM_CODE = 0x100;
-		public static final int FINISH_GET_ACCESS_TOKEN_FAILED = 0x101;
-		public static final int FINISH_GET_ACCESS_TOKEN_SUCCEEDED = 0x102;
-
-		public void handleMessage(android.os.Message msg) {
-			switch (msg.what) {
-			case BEGIN_GET_ACCESS_TOKEN_FROM_CODE:
-				break;
-
-			case FINISH_GET_ACCESS_TOKEN_SUCCEEDED:
-				Toast.makeText(MainActivity.this, "授权成功!", Toast.LENGTH_SHORT).show();
-				mAccessToken = ((MyApplication) getApplicationContext()).getAccessToken();
-
-				if (mWeiboFragment == null) {
-					Log.w(TAG, "mWeiboFragment is null");
-				} else {
-					WeiboListAdapter adapter = (WeiboListAdapter) mWeiboFragment.getListAdapter();
-					if (adapter == null) {
-						Log.w(TAG, "WeiboListAdapter is null, set a new one");
-						adapter = new WeiboListAdapter(MainActivity.this);
-						mWeiboFragment.setListAdapter(adapter);
-					}
-					WeiboDownloader.Params params = new WeiboDownloader.Params();
-					params.put(WeiboDownloader.Params.ACCESS_TOKEN, mAccessToken.getAccessToken());
-					adapter.getWeiboItems(params);
-				}
-
-				break;
-			case FINISH_GET_ACCESS_TOKEN_FAILED:
-				Toast.makeText(MainActivity.this, "授权失败：" + (msg == null ? "" : (String) msg.obj), Toast.LENGTH_SHORT).show();
-				break;
-
-			default:
-				break;
-			}
-		};
 	}
 
 	@Override
 	protected void onStart() {
-		if (mAccessToken != null && !mAccessToken.isExpired()) {
-			if (mWeiboFragment == null) {
-				Log.w(TAG, "mWeiboFragment is null");
-			} else {
+		super.onStart();
+
+		new Authentication().login();
+		Log.v(TAG, "loged in");
+
+		if (mAccessToken != null && !mAccessToken.isExpired() && mWeiboFragment == null) {
+			WeiboListAdapter adapter = (WeiboListAdapter) mWeiboFragment.getListAdapter();
+			if (adapter != null && adapter.getCount() > 0) {
 				WeiboDownloader.Params params = new WeiboDownloader.Params();
 				params.put(WeiboDownloader.Params.ACCESS_TOKEN, mAccessToken.getAccessToken());
-				WeiboListAdapter adapter = (WeiboListAdapter) mWeiboFragment.getListAdapter();
-				if (adapter != null) {
-					adapter.getWeiboItems(params);
-				} else {
-					Log.w(TAG, "WeiboListAdapter is null");
-				}
+				adapter.getWeiboItems(params);
 			}
 		} else {
-			Authentication.login(this, mHandler);
+			Log.v(TAG, "not refresh weibo items on startup(true if OAuth2 is not performed)");
 		}
-		super.onStart();
+	}
+
+	public class Authentication {
+
+		public final String TAG = Authentication.class.getSimpleName();
+		private final String url = "https://api.weibo.com/oauth2/access_token";
+
+		private boolean isRunning = false;
+
+		/*
+		 * perform OAuth or check for validity of access token, re-auth if
+		 * necessary
+		 */
+		public void login() {
+			// another authentication is in process
+			if (isRunning) {
+				return;
+			}
+
+			AccessToken accessToken = AccessTokenKeeper.readAccessToken(MainActivity.this);
+			if (accessToken == null || accessToken.isExpired()) {
+				Log.v(TAG, "access_token expired, expire time:" + accessToken.getExpireTimeString());
+				auth();
+			} else {
+				Log.v(TAG, "access_token is valid. Expire time: " + accessToken.getExpireTimeString());
+				isRunning = false;
+				// store new access token to application-wide range
+				MyApplication.setAccessToken(accessToken);
+			}
+		}
+
+		/**
+		 * perform SSO or OAuth 2.0 authentication
+		 */
+		public void auth() {
+			final AppRegInfo appInfo = AppRegInfoHelper.getAppRegInfo();
+			if (appInfo == null) {
+				mHandler.sendMessage(mHandler.obtainMessage(OAUTH_APP_KEY_NOT_FOUND));
+				isRunning = false;
+				return;
+			}
+			Log.v(TAG, appInfo.toString());
+
+			// String SCOPE = "direct_messages_read,direct_messages_write," +
+			// "statuses_to_me_read," + "follow_app_official_microblog";
+			Weibo weibo = Weibo.getInstance(appInfo.getAppKey(), appInfo.getAppUrl(), null);
+			SsoHandler ssoHandler = new SsoHandler(MainActivity.this, weibo);
+			ssoHandler.authorize(new WeiboAuthListener() {
+				@Override
+				public void onWeiboException(WeiboException arg0) {
+					mHandler.sendMessage(mHandler.obtainMessage(OAUTH_WEIBO_EXCEPTION, "微博异常：" + arg0));
+					isRunning = false;
+				}
+
+				@Override
+				public void onError(WeiboDialogError arg0) {
+					String msgString = "授权出错:" + arg0.getMessage();
+					mHandler.sendMessage(mHandler.obtainMessage(OAUTH_ERROR, msgString));
+					isRunning = false;
+				}
+
+				@Override
+				public void onComplete(Bundle values) {
+					Log.v(TAG, values.toString());
+					String code = values.getString("code");
+					if (code != null) {
+						mHandler.sendMessage(mHandler.obtainMessage(OAUTH_GOT_ACCESS_CODE, code));
+						getAccessTokenFromCode(code, appInfo);
+					} else {
+						mHandler.sendMessage(mHandler.obtainMessage(OAUTH_FAILED, "授权失败：无法获得Oauth code"));
+						isRunning = false;
+					}
+				}
+
+				@Override
+				public void onCancel() {
+					mHandler.sendMessage(mHandler.obtainMessage(OAUTH_CANCELED));
+					isRunning = false;
+				}
+			});
+		}
+
+		/**
+		 * get access token, and save it in global application space
+		 * 
+		 * @param context
+		 * @param handler
+		 * @param code
+		 * @param appRegInfo
+		 */
+		public void getAccessTokenFromCode(final String code, final AppRegInfo appRegInfo) {
+			new Thread() {
+				public void run() {
+					boolean succeed = true;
+					mHandler.sendMessage(mHandler.obtainMessage(GET_ACCESS_TOKEN_FROM_CODE_START));
+					String result = null;
+					HttpPost httpRequest = new HttpPost(url);
+					List<NameValuePair> params = new ArrayList<NameValuePair>();
+					params.add(new BasicNameValuePair("client_id", appRegInfo.getAppKey()));
+					params.add(new BasicNameValuePair("client_secret", appRegInfo.getAppSecret()));
+					params.add(new BasicNameValuePair("grant_type", "authorization_code"));
+					params.add(new BasicNameValuePair("redirect_uri", appRegInfo.getAppUrl()));
+					params.add(new BasicNameValuePair("code", code));
+					try {
+						httpRequest.setEntity(new UrlEncodedFormEntity(params, HTTP.UTF_8));
+						Log.v(TAG, "Post url: " + httpRequest.getURI());
+						HttpClient httpClient = SslClient.getSslClient(new DefaultHttpClient());
+						HttpResponse httpResponse = httpClient.execute(httpRequest);
+						int statusCode = httpResponse.getStatusLine().getStatusCode();
+						if (statusCode == HttpStatus.SC_OK) {
+							httpResponse.getEntity();
+							result = EntityUtils.toString(httpResponse.getEntity());
+						} else {
+							mHandler.sendMessage(mHandler.obtainMessage(GET_ACCESS_TOKEN_FROM_CODE_FAILED, statusCode));
+							succeed = false;
+						}
+					} catch (Exception e) {
+						succeed = false;
+						e.printStackTrace();
+						mHandler.sendMessage(mHandler.obtainMessage(GET_ACCESS_TOKEN_FROM_CODE_EXCEPTION,
+								e.getMessage()));
+						Log.e(TAG, e.getMessage());
+						return;
+					}
+					Log.v(TAG, result);
+					try {
+						AccessToken accessToken = new AccessToken();
+						JSONObject jsonObject = new JSONObject(result);
+						appRegInfo.setUid(jsonObject.getLong(AccessToken.UID));
+						accessToken.setAccessToken(jsonObject.getString(AccessToken.ACCESS_TOKEN));
+						accessToken.setExpireTimeFromExpiresIn(jsonObject.getLong(AccessToken.EXPIRES_IN));
+
+						AccessTokenKeeper.keepAccessToken(MainActivity.this, accessToken);
+						MyApplication.setAccessToken(accessToken);
+					} catch (JSONException e) {
+						mHandler.sendMessage(mHandler.obtainMessage(GET_ACCESS_TOKEN_FROM_CODE_PARSE_JSON_EXCEPTION));
+						e.printStackTrace();
+						succeed = false;
+					}
+					if (succeed) {
+						mHandler.sendMessage(mHandler.obtainMessage(GET_ACCESS_TOKEN_FROM_CODE_SUCCEED));
+					}
+				};
+			}.start();
+		}
 	}
 
 	private void initUI() {

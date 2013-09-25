@@ -5,6 +5,11 @@ import java.util.Date;
 import java.util.Locale;
 
 public class AccessToken {
+	public static String ACCESS_TOKEN = "access_token";
+	public static String EXPIRES_IN = "expires_in";
+	public static String UID = "uid";
+	public static String CODE = "code";
+
 	private String accessToken;
 	private long expireTime;
 
@@ -50,6 +55,7 @@ public class AccessToken {
 
 	@Override
 	public String toString() {
-		return "AccessToken [accessToken=" + accessToken + ", expireTime=" + expireTime + "(" + this.getExpireTimeString() + ")]";
+		return "AccessToken [accessToken=" + accessToken + ", expireTime=" + expireTime + "("
+				+ this.getExpireTimeString() + ")]";
 	}
 }

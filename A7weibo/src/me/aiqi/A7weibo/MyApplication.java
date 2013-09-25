@@ -12,8 +12,10 @@ import com.nostra13.universalimageloader.utils.StorageUtils;
 
 import me.aiqi.A7weibo.entity.AccessToken;
 import android.app.Application;
+import android.util.Log;
 
 public class MyApplication extends Application {
+	private static final String TAG = "MyApplication";
 	private static AccessToken accessToken;
 	private static MyApplication mApplicationContext;
 
@@ -46,8 +48,9 @@ public class MyApplication extends Application {
 		return accessToken;
 	}
 
-	public void setAccessToken(AccessToken token) {
+	public static void setAccessToken(AccessToken token) {
 		accessToken = token;
+		Log.v(TAG, token.toString());
 	}
 
 	public static MyApplication getContext() {

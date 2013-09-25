@@ -162,8 +162,9 @@ public class WeiboListAdapter extends BaseAdapter {
 	}
 
 	public void updateWeibolist(List<WeiboItem> weiboItems) {
-		// It's fairly rare that weiboItem == mWeiboItem, so we don't check
+		// It's fairly rare that weiboItem == mWeiboItem, so we don't check, it don't worth
 		mWeiboItems = weiboItems;
+		Log.d(TAG, "data set changed, refresh UI");
 		notifyDataSetChanged();
 	}
 
