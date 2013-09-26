@@ -48,7 +48,7 @@ public class WeiboListFragment extends ListFragment {
 		if (!accessToken.isExpired() && mWeiboListdapter.getCount() == 0) {
 			Log.v(TAG, "WeiboListAdapter is empty, try load new weibo items");
 			WeiboDownloader.Params params = new WeiboDownloader.Params();
-			params.put(WeiboDownloader.Params.ACCESS_TOKEN, accessToken.getAccessToken());
+			params.put(WeiboDownloader.Params.ACCESS_TOKEN, accessToken.getAccessTokenString());
 			mWeiboListdapter.getWeiboItems(params);
 		} else {
 			Log.v(TAG, "WeiboListAdapter items count: " + mWeiboListdapter.getCount());

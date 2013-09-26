@@ -36,9 +36,7 @@ public class MyApplication extends Application {
 				.build();
 		ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(getApplicationContext())
 				.memoryCache(new LruMemoryCache(2 * 1024 * 1024))
-				.memoryCacheSize(2 * 1024 * 1024)
 				.discCache(new UnlimitedDiscCache(cacheDir))
-				.discCacheSize(50 * 1024 * 1024)
 				.defaultDisplayImageOptions(defaultOptions)
 				.build();
 		ImageLoader.getInstance().init(config);

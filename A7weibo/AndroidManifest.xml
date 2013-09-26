@@ -30,7 +30,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="me.aiqi.A7weibo.auth.AccessTokenKeeper" >
+        <activity android:name="me.aiqi.A7weibo.util.AccessTokenKeeper" >
         </activity>
     </application>
 

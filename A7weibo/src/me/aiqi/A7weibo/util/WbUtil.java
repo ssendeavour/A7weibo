@@ -25,15 +25,16 @@ public class WbUtil {
 	/**
 	 * H: 00-23, h: 0-11(am/pm) Z: timezone (+8000) see full doc <a href=
 	 * "http://docs.oracle.com/javase/1.4.2/docs/api/java/text/SimpleDateFormat.html"
-	 * >docs.oracle.com</a>
+	 * >docs.oracle.com</a>. Locale.US is always available on all platform (see
+	 * Locale javadoc)
 	 */
 
-	private static java.text.DateFormat weiboCreateDateFormat = new SimpleDateFormat("EEE MMM dd HH:mm:ss Z yyyy",
-			Locale.ENGLISH);
-	private static java.text.DateFormat yyyyMMddhhmmsFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss",
-			Locale.ENGLISH);
-	private static java.text.DateFormat hhmmDateFormat = new SimpleDateFormat("HH:mm", Locale.ENGLISH);
-	private static java.text.DateFormat mMddHHmmDateFormat = new SimpleDateFormat("M月d号 HH:mm", Locale.ENGLISH);
+	private static final java.text.DateFormat weiboCreateDateFormat =
+			new SimpleDateFormat("EEE MMM dd HH:mm:ss Z yyyy", Locale.US);
+	private static final java.text.DateFormat yyyyMMddhhmmsFormat =
+			new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
+	private static final java.text.DateFormat hhmmDateFormat = new SimpleDateFormat("HH:mm", Locale.US);
+	private static final java.text.DateFormat mMddHHmmDateFormat = new SimpleDateFormat("M月d号 HH:mm", Locale.US);
 
 	/**
 	 * Format Oauth2AccessToken expire time to human readable string (yyyy-MM-dd
@@ -61,7 +62,6 @@ public class WbUtil {
 	public static Calendar getCalenderFromDateString(String dateString) throws ParseException {
 		Calendar cal = Calendar.getInstance();
 		cal.setTime(weiboCreateDateFormat.parse(dateString));
-		Log.v(TAG, cal.getTime().toString());
 		return cal;
 	}
 

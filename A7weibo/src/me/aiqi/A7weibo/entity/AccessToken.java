@@ -4,58 +4,61 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
+import android.util.Log;
+
 public class AccessToken {
 	public static String ACCESS_TOKEN = "access_token";
 	public static String EXPIRES_IN = "expires_in";
 	public static String UID = "uid";
 	public static String CODE = "code";
 
-	private String accessToken;
-	private long expireTime;
+	private String mAccessTokenString;
+	/** expire time in seconds since epoch */
+	private long mExpireTime;
 
-	public AccessToken(String accessToken, long expireTime) {
+	public AccessToken(String accessTokenString, long expireTime) {
 		super();
-		this.accessToken = accessToken;
-		this.expireTime = expireTime;
+		mAccessTokenString = accessTokenString;
+		mExpireTime = expireTime;
 	}
 
 	public AccessToken() {
 		super();
-		this.accessToken = "";
-		this.expireTime = 0;
+		mAccessTokenString = "";
+		mExpireTime = 0;
 	}
 
-	public String getAccessToken() {
-		return accessToken;
+	public String getAccessTokenString() {
+		return mAccessTokenString;
 	}
 
-	public void setAccessToken(String accessToken) {
-		this.accessToken = accessToken;
+	public void setAccessTokenString(String accessToken) {
+		mAccessTokenString = accessToken;
 	}
 
 	public long getExpireTime() {
-		return expireTime;
+		return mExpireTime;
 	}
 
 	public void setExpireTime(long expireTime) {
-		this.expireTime = expireTime;
+		mExpireTime = expireTime;
 	}
 
 	public void setExpireTimeFromExpiresIn(long expiresIn) {
-		this.expireTime = System.currentTimeMillis() / 1000 + expiresIn;
+		mExpireTime = System.currentTimeMillis() / 1000 + expiresIn;
 	}
 
 	public boolean isExpired() {
-		return System.currentTimeMillis() / 1000 > this.expireTime;
+		return System.currentTimeMillis() / 1000 > mExpireTime;
 	}
 
 	public String getExpireTimeString() {
-		return new SimpleDateFormat("yyyy-MM-dd hh:mm:ss", Locale.US).format(new Date(1000 * this.expireTime));
+		return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US).format(new Date(1000 * mExpireTime));
 	}
 
 	@Override
 	public String toString() {
-		return "AccessToken [accessToken=" + accessToken + ", expireTime=" + expireTime + "("
-				+ this.getExpireTimeString() + ")]";
+		return "AccessToken [accessToken=" + mAccessTokenString + ", expireTime=" + mExpireTime + "("
+				+ getExpireTimeString() + ")]";
 	}
 }

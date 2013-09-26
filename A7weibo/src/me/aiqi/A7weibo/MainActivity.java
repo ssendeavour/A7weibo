@@ -4,11 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-import me.aiqi.A7weibo.auth.AccessTokenKeeper;
 import me.aiqi.A7weibo.downloader.WeiboDownloader;
 import me.aiqi.A7weibo.entity.AccessToken;
 import me.aiqi.A7weibo.entity.AppRegInfo;
 import me.aiqi.A7weibo.network.SslClient;
+import me.aiqi.A7weibo.util.AccessTokenKeeper;
 import me.aiqi.A7weibo.util.AppRegInfoHelper;
 
 import org.apache.http.HttpResponse;
@@ -123,7 +123,7 @@ public class MainActivity extends ActionBarActivity {
 							mWeiboFragment.setListAdapter(adapter);
 						}
 						WeiboDownloader.Params params = new WeiboDownloader.Params();
-						params.put(WeiboDownloader.Params.ACCESS_TOKEN, mAccessToken.getAccessToken());
+						params.put(WeiboDownloader.Params.ACCESS_TOKEN, mAccessToken.getAccessTokenString());
 						adapter.getWeiboItems(params);
 					}
 					break;
@@ -188,7 +188,7 @@ public class MainActivity extends ActionBarActivity {
 			WeiboListAdapter adapter = (WeiboListAdapter) mWeiboFragment.getListAdapter();
 			if (adapter != null && adapter.getCount() > 0) {
 				WeiboDownloader.Params params = new WeiboDownloader.Params();
-				params.put(WeiboDownloader.Params.ACCESS_TOKEN, mAccessToken.getAccessToken());
+				params.put(WeiboDownloader.Params.ACCESS_TOKEN, mAccessToken.getAccessTokenString());
 				adapter.getWeiboItems(params);
 			}
 		} else {
@@ -214,8 +214,9 @@ public class MainActivity extends ActionBarActivity {
 			}
 
 			AccessToken accessToken = AccessTokenKeeper.readAccessToken(MainActivity.this);
+
 			if (accessToken == null || accessToken.isExpired()) {
-				Log.v(TAG, "access_token expired, expire time:" + accessToken.getExpireTimeString());
+				Log.v(TAG, "access_token expired");
 				auth();
 			} else {
 				Log.v(TAG, "access_token is valid. Expire time: " + accessToken.getExpireTimeString());
@@ -240,8 +241,14 @@ public class MainActivity extends ActionBarActivity {
 			// String SCOPE = "direct_messages_read,direct_messages_write," +
 			// "statuses_to_me_read," + "follow_app_official_microblog";
 			Weibo weibo = Weibo.getInstance(appInfo.getAppKey(), appInfo.getAppUrl(), null);
-			SsoHandler ssoHandler = new SsoHandler(MainActivity.this, weibo);
-			ssoHandler.authorize(new WeiboAuthListener() {
+
+			/*
+			 * mSsoHandler is needed is onActivityResult, so have to keep it,
+			 * have no better way
+			 */
+			//			mSsoHandler = new SsoHandler(MainActivity.this, weibo);
+			//			mSsoHandler.authorize(new WeiboAuthListener() {
+			weibo.anthorize(MainActivity.this, new WeiboAuthListener() {
 				@Override
 				public void onWeiboException(WeiboException arg0) {
 					mHandler.sendMessage(mHandler.obtainMessage(OAUTH_WEIBO_EXCEPTION, "微博异常：" + arg0));
@@ -323,7 +330,7 @@ public class MainActivity extends ActionBarActivity {
 						AccessToken accessToken = new AccessToken();
 						JSONObject jsonObject = new JSONObject(result);
 						appRegInfo.setUid(jsonObject.getLong(AccessToken.UID));
-						accessToken.setAccessToken(jsonObject.getString(AccessToken.ACCESS_TOKEN));
+						accessToken.setAccessTokenString(jsonObject.getString(AccessToken.ACCESS_TOKEN));
 						accessToken.setExpireTimeFromExpiresIn(jsonObject.getLong(AccessToken.EXPIRES_IN));
 
 						AccessTokenKeeper.keepAccessToken(MainActivity.this, accessToken);
@@ -344,7 +351,7 @@ public class MainActivity extends ActionBarActivity {
 	private void initUI() {
 		// Set up the action bar.
 		final ActionBar actionBar = getSupportActionBar();
-		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
+		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
 
 		// Create the adapter that will return a fragment for each of the three
 		// primary sections of the app.

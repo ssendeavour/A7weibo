@@ -1,4 +1,4 @@
-package me.aiqi.A7weibo.auth;
+package me.aiqi.A7weibo.util;
 
 import me.aiqi.A7weibo.entity.AccessToken;
 import me.aiqi.A7weibo.entity.AppRegInfo;
@@ -8,6 +8,7 @@ import com.weibo.sdk.android.Oauth2AccessToken;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.util.Log;
 
 /**
  * 该类用于保存Oauth2AccessToken到sharepreference，并提供读取功能
@@ -16,6 +17,8 @@ import android.content.SharedPreferences.Editor;
  * 
  */
 public class AccessTokenKeeper {
+	public static final String TAG = "AccessTokenKeeper";
+
 	private static final String PREFERENCES_NAME = "me.aiqi.A7weibo";
 
 	/**
@@ -29,7 +32,7 @@ public class AccessTokenKeeper {
 	public static boolean keepAccessToken(Context context, AccessToken token) {
 		SharedPreferences pref = context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_APPEND);
 		Editor editor = pref.edit();
-		editor.putString("token", token.getAccessToken());
+		editor.putString("token", token.getAccessTokenString());
 		editor.putLong("expiresTime", token.getExpireTime());
 		return editor.commit();
 	}
@@ -58,7 +61,7 @@ public class AccessTokenKeeper {
 		if (pref == null) {
 			return null;
 		}
-		token.setAccessToken(pref.getString("token", ""));
+		token.setAccessTokenString(pref.getString("token", ""));
 		token.setExpireTime(pref.getLong("expiresTime", 0));
 		return token;
 	}
