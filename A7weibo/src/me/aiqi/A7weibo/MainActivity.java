@@ -8,7 +8,6 @@ import me.aiqi.A7weibo.auth.AccessTokenKeeper;
 import me.aiqi.A7weibo.downloader.WeiboDownloader;
 import me.aiqi.A7weibo.entity.AccessToken;
 import me.aiqi.A7weibo.entity.AppRegInfo;
-import me.aiqi.A7weibo.entity.Consts;
 import me.aiqi.A7weibo.network.SslClient;
 import me.aiqi.A7weibo.util.AppRegInfoHelper;
 
@@ -26,7 +25,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.annotation.SuppressLint;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -51,22 +49,26 @@ import com.weibo.sdk.android.WeiboException;
 import com.weibo.sdk.android.sso.SsoHandler;
 
 @SuppressLint("HandlerLeak")
-public class MainActivity extends ActionBarActivity implements ActionBar.TabListener {
+public class MainActivity extends ActionBarActivity {
 	public static final String TAG = MainActivity.class.getSimpleName();
 
 	public static final int GET_ACCESS_TOKEN_FROM_CODE_START = 0x100;
+
 	/**
 	 * msg.obj should set to responding HTTP status code ({@code int}).<br />
 	 * see also {@link GET_ACCESS_TOKEN_FROM_CODE_EXCEPTION}
 	 */
 	public static final int GET_ACCESS_TOKEN_FROM_CODE_FAILED = 0x101;
+
 	/** msg.obj is not used in handleMessage */
 	public static final int GET_ACCESS_TOKEN_FROM_CODE_SUCCEED = 0x102;
+
 	/**
 	 * msg.obj should set to a text description. <br />
 	 * see also {@link GET_ACCESS_TOKEN_FROM_CODE_FAILED}
 	 */
 	public static final int GET_ACCESS_TOKEN_FROM_CODE_EXCEPTION = 0x103;
+
 	/** msg.obj is not used in handleMessage */
 	public static final int GET_ACCESS_TOKEN_FROM_CODE_PARSE_JSON_EXCEPTION = 0x104;
 
@@ -342,7 +344,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 	private void initUI() {
 		// Set up the action bar.
 		final ActionBar actionBar = getSupportActionBar();
-		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
+		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
 
 		// Create the adapter that will return a fragment for each of the three
 		// primary sections of the app.
@@ -362,12 +364,34 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 			}
 		});
 
+		ActionBar.TabListener tabListener = new ActionBar.TabListener() {
+			@Override
+			public void onTabReselected(Tab arg0, android.support.v4.app.FragmentTransaction arg1) {
+			}
+
+			@Override
+			public void onTabSelected(Tab arg0, android.support.v4.app.FragmentTransaction arg1) {
+				mViewPager.setCurrentItem(arg0.getPosition());
+			}
+
+			@Override
+			public void onTabUnselected(Tab arg0, android.support.v4.app.FragmentTransaction arg1) {
+			}
+		};
+
 		// For each of the sections in the app, add a tab to the action bar.
 		for (int i = 0; i < mSectionsPagerAdapter.getCount(); i++) {
-			actionBar.addTab(actionBar.newTab().setText(mSectionsPagerAdapter.getPageTitle(i)).setTabListener(this));
+			actionBar.addTab(actionBar.newTab().setText(mSectionsPagerAdapter.getPageTitle(i))
+					.setTabListener(tabListener));
 		}
 	}
 
+	/**
+	 * Pager Adapter providing weibo tab, comment and @ tab and me tab
+	 * 
+	 * @author starfish
+	 * 
+	 */
 	public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
 		public SectionsPagerAdapter(FragmentManager fm) {
@@ -426,19 +450,6 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 			dummyTextView.setText(Integer.toString(sectionNumber));
 			return rootView;
 		}
-	}
-
-	@Override
-	public void onTabReselected(Tab arg0, android.support.v4.app.FragmentTransaction arg1) {
-	}
-
-	@Override
-	public void onTabSelected(Tab arg0, android.support.v4.app.FragmentTransaction arg1) {
-		mViewPager.setCurrentItem(arg0.getPosition());
-	}
-
-	@Override
-	public void onTabUnselected(Tab arg0, android.support.v4.app.FragmentTransaction arg1) {
 	}
 
 	/**

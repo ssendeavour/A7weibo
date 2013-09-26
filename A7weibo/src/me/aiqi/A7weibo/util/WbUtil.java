@@ -23,8 +23,21 @@ public class WbUtil {
 	private static final String TAG = "WbUtil";
 
 	/**
+	 * H: 00-23, h: 0-11(am/pm) Z: timezone (+8000) see full doc <a href=
+	 * "http://docs.oracle.com/javase/1.4.2/docs/api/java/text/SimpleDateFormat.html"
+	 * >docs.oracle.com</a>
+	 */
+
+	private static java.text.DateFormat weiboCreateDateFormat = new SimpleDateFormat("EEE MMM dd HH:mm:ss Z yyyy",
+			Locale.ENGLISH);
+	private static java.text.DateFormat yyyyMMddhhmmsFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss",
+			Locale.ENGLISH);
+	private static java.text.DateFormat hhmmDateFormat = new SimpleDateFormat("HH:mm", Locale.ENGLISH);
+	private static java.text.DateFormat mMddHHmmDateFormat = new SimpleDateFormat("M月d号 HH:mm", Locale.ENGLISH);
+
+	/**
 	 * Format Oauth2AccessToken expire time to human readable string (yyyy-MM-dd
-	 * hh:mm:ss) for easy debug
+	 * HH:mm:ss) for easy debug
 	 * 
 	 * @param accessToken
 	 * @return Formated date string
@@ -33,7 +46,8 @@ public class WbUtil {
 		if (accessToken == null) {
 			return "";
 		}
-		return new SimpleDateFormat("yyyy-MM-dd hh:mm:ss", Locale.US).format(new Date(1000 * accessToken.getExpiresTime()));
+		return yyyyMMddhhmmsFormat.format(new Date(1000 * accessToken
+				.getExpiresTime()));
 	}
 
 	/**
@@ -45,9 +59,8 @@ public class WbUtil {
 	 * @throws ParseException
 	 */
 	public static Calendar getCalenderFromDateString(String dateString) throws ParseException {
-		java.text.DateFormat df = new SimpleDateFormat("EEE MMM dd HH:mm:ss Z yyyy", Locale.ENGLISH);
 		Calendar cal = Calendar.getInstance();
-		cal.setTime(df.parse(dateString));
+		cal.setTime(weiboCreateDateFormat.parse(dateString));
 		Log.v(TAG, cal.getTime().toString());
 		return cal;
 	}
@@ -83,19 +96,17 @@ public class WbUtil {
 			yesterDay.setTime(now.getTime());
 			yesterDay.add(Calendar.DAY_OF_YEAR, -1); // also work for date like
 														// January 1st.
-			if (date.get(Calendar.YEAR) == now.get(Calendar.YEAR) && date.get(Calendar.DAY_OF_YEAR) == now.get(Calendar.DAY_OF_YEAR)) {
+			if (date.get(Calendar.YEAR) == now.get(Calendar.YEAR)
+					&& date.get(Calendar.DAY_OF_YEAR) == now.get(Calendar.DAY_OF_YEAR)) {
 				// today
-				SimpleDateFormat sdf = new SimpleDateFormat("HH:mm", Locale.ENGLISH);
-				result = sdf.format(date.getTime());
+				result = hhmmDateFormat.format(date.getTime());
 			} else if (date.get(Calendar.YEAR) == yesterDay.get(Calendar.YEAR)
 					&& date.get(Calendar.DAY_OF_YEAR) == yesterDay.get(Calendar.DAY_OF_YEAR)) {
 				// yesterday
-				SimpleDateFormat sdf = new SimpleDateFormat("HH:mm", Locale.ENGLISH);
-				result = "昨天" + sdf.format(date.getTime());
+				result = "昨天" + hhmmDateFormat.format(date.getTime());
 			} else {
 				// otherwise
-				SimpleDateFormat sdf = new SimpleDateFormat("M月d号 HH:mm", Locale.ENGLISH);
-				result = sdf.format(date.getTime());
+				result = mMddHHmmDateFormat.format(date.getTime());
 			}
 		}
 		return result;
