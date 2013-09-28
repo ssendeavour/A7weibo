@@ -35,7 +35,7 @@ public class MyApplication extends Application {
 				.imageScaleType(ImageScaleType.EXACTLY)
 				.build();
 		ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(getApplicationContext())
-				.memoryCache(new LruMemoryCache(2 * 1024 * 1024))
+				//				.memoryCache(new LruMemoryCache(3 * 1024 * 1024))
 				.discCache(new UnlimitedDiscCache(cacheDir))
 				.defaultDisplayImageOptions(defaultOptions)
 				.build();

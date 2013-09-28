@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import me.aiqi.A7weibo.downloader.WeiboDownloader;
 import me.aiqi.A7weibo.entity.AccessToken;
@@ -26,6 +27,7 @@ import org.apache.http.util.EntityUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.R.bool;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
@@ -38,9 +40,14 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBar.Tab;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
+import android.view.ContextMenu;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -91,9 +98,9 @@ public class MainActivity extends ActionBarActivity {
 	private ViewPager mViewPager;
 	private WeiboListFragment mWeiboFragment;
 
-	private SsoHandler mSsoHandler;
 	private AccessToken mAccessToken;
 	private Handler mHandler;
+	protected static AtomicBoolean isLoggingOn = new AtomicBoolean(false);
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -102,10 +109,6 @@ public class MainActivity extends ActionBarActivity {
 
 		initUI();
 
-		/*
-		 * message handler for OAuth 2.0 things It's life cycle is the same as
-		 * the application, will not leak memory
-		 */
 		mHandler = new Handler() {
 			public void handleMessage(android.os.Message msg) {
 				switch (msg.what) {
@@ -120,7 +123,7 @@ public class MainActivity extends ActionBarActivity {
 					} else {
 						WeiboListAdapter adapter = (WeiboListAdapter) mWeiboFragment.getListAdapter();
 						if (adapter == null) {
-							Log.d(TAG, "WeiboListAdapter is null, set a new one");
+							Log.v(TAG, "got access token, but WeiboListAdapter is null, create one");
 							adapter = new WeiboListAdapter(MainActivity.this);
 							mWeiboFragment.setListAdapter(adapter);
 						}
@@ -182,11 +185,12 @@ public class MainActivity extends ActionBarActivity {
 		super.onStart();
 
 		new Authentication().login();
-		Log.v(TAG, "loged in");
 
-		if (mAccessToken != null && !mAccessToken.isExpired() && mWeiboFragment == null) {
+		if (mAccessToken != null && !mAccessToken.isExpired() && mWeiboFragment != null) {
 			WeiboListAdapter adapter = (WeiboListAdapter) mWeiboFragment.getListAdapter();
-			if (adapter != null && adapter.getCount() > 0) {
+			// if weibo list is empty, refresh it automatically
+			if (adapter != null && adapter.getCount() == 0) {
+				Log.v(TAG, "refreshing weibo list");
 				adapter.refresh(mAccessToken);
 			}
 		} else {
@@ -194,23 +198,41 @@ public class MainActivity extends ActionBarActivity {
 		}
 	}
 
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		getMenuInflater().inflate(R.menu.main_activity_actions, menu);
+		return super.onCreateOptionsMenu(menu);
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+		case R.id.action_refresh:
+			// refresh weibo list
+			Log.v(TAG, "Refresh menu clicked");
+			mWeiboFragment.refreshWeiboList();
+			return true;
+		case R.id.action_load_more:
+			Log.v(TAG, "Load more menu clicked");
+			mWeiboFragment.loadMoreWeibo();
+			return true;
+
+		default:
+			return super.onOptionsItemSelected(item);
+		}
+
+	}
+
 	public class Authentication {
 
 		public final String TAG = Authentication.class.getSimpleName();
 		private final String url = "https://api.weibo.com/oauth2/access_token";
-
-		private boolean isRunning = false;
 
 		/*
 		 * perform OAuth or check for validity of access token, re-auth if
 		 * necessary
 		 */
 		public void login() {
-			// another authentication is in process
-			if (isRunning) {
-				return;
-			}
-
 			AccessToken accessToken = AccessTokenKeeper.readAccessToken(MainActivity.this);
 
 			if (accessToken == null || accessToken.isExpired()) {
@@ -218,8 +240,8 @@ public class MainActivity extends ActionBarActivity {
 				auth();
 			} else {
 				Log.v(TAG, "access_token is valid. Expire time: " + accessToken.getExpireTimeString());
-				isRunning = false;
-				// store new access token to application-wide range
+				isLoggingOn.set(false);
+				// store new access token in application-wide variable
 				MyApplication.setAccessToken(accessToken);
 			}
 		}
@@ -227,11 +249,16 @@ public class MainActivity extends ActionBarActivity {
 		/**
 		 * perform SSO or OAuth 2.0 authentication
 		 */
-		public void auth() {
+		public synchronized void auth() {
+			// another authentication is in process
+			if (isLoggingOn.get()) {
+				return;
+			}
+			isLoggingOn.set(true);
 			final AppRegInfo appInfo = AppRegInfoHelper.getAppRegInfo();
 			if (appInfo == null) {
 				mHandler.sendMessage(mHandler.obtainMessage(OAUTH_APP_KEY_NOT_FOUND));
-				isRunning = false;
+				isLoggingOn.set(false);
 				return;
 			}
 			Log.v(TAG, appInfo.toString());
@@ -239,25 +266,18 @@ public class MainActivity extends ActionBarActivity {
 			// String SCOPE = "direct_messages_read,direct_messages_write," +
 			// "statuses_to_me_read," + "follow_app_official_microblog";
 			Weibo weibo = Weibo.getInstance(appInfo.getAppKey(), appInfo.getAppUrl(), null);
-
-			/*
-			 * mSsoHandler is needed is onActivityResult, so have to keep it,
-			 * have no better way
-			 */
-			//			mSsoHandler = new SsoHandler(MainActivity.this, weibo);
-			//			mSsoHandler.authorize(new WeiboAuthListener() {
 			weibo.anthorize(MainActivity.this, new WeiboAuthListener() {
 				@Override
 				public void onWeiboException(WeiboException arg0) {
 					mHandler.sendMessage(mHandler.obtainMessage(OAUTH_WEIBO_EXCEPTION, "微博异常：" + arg0));
-					isRunning = false;
+					isLoggingOn.set(false);
 				}
 
 				@Override
 				public void onError(WeiboDialogError arg0) {
 					String msgString = "授权出错:" + arg0.getMessage();
 					mHandler.sendMessage(mHandler.obtainMessage(OAUTH_ERROR, msgString));
-					isRunning = false;
+					isLoggingOn.set(false);
 				}
 
 				@Override
@@ -269,14 +289,14 @@ public class MainActivity extends ActionBarActivity {
 						getAccessTokenFromCode(code, appInfo);
 					} else {
 						mHandler.sendMessage(mHandler.obtainMessage(OAUTH_FAILED, "授权失败：无法获得Oauth code"));
-						isRunning = false;
+						isLoggingOn.set(false);
 					}
 				}
 
 				@Override
 				public void onCancel() {
 					mHandler.sendMessage(mHandler.obtainMessage(OAUTH_CANCELED));
-					isRunning = false;
+					isLoggingOn.set(false);
 				}
 			});
 		}
@@ -331,6 +351,7 @@ public class MainActivity extends ActionBarActivity {
 						accessToken.setAccessTokenString(jsonObject.getString(AccessToken.ACCESS_TOKEN));
 						accessToken.setExpireTimeFromExpiresIn(jsonObject.getLong(AccessToken.EXPIRES_IN));
 
+						// save access token to disk (SharedPreference)
 						AccessTokenKeeper.keepAccessToken(MainActivity.this, accessToken);
 						MyApplication.setAccessToken(accessToken);
 					} catch (JSONException e) {
@@ -351,8 +372,6 @@ public class MainActivity extends ActionBarActivity {
 		final ActionBar actionBar = getSupportActionBar();
 		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
 
-		// Create the adapter that will return a fragment for each of the three
-		// primary sections of the app.
 		mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
 
 		// Set up the ViewPager with the sections adapter.
@@ -437,6 +456,10 @@ public class MainActivity extends ActionBarActivity {
 		}
 	}
 
+	/**
+	 * place holder class, will be removed when develop functions for the other
+	 * two tabs
+	 */
 	public static class DummySectionFragment extends Fragment {
 		/**
 		 * The fragment argument representing the section number for this
@@ -454,17 +477,6 @@ public class MainActivity extends ActionBarActivity {
 			TextView dummyTextView = (TextView) rootView.findViewById(R.id.section_label);
 			dummyTextView.setText(Integer.toString(sectionNumber));
 			return rootView;
-		}
-	}
-
-	/**
-	 * required by Weibo OAuth2.0
-	 */
-	@Override
-	protected void onActivityResult(int arg0, int arg1, Intent arg2) {
-		super.onActivityResult(arg0, arg1, arg2);
-		if (mSsoHandler != null) {
-			mSsoHandler.authorizeCallBack(arg0, arg1, arg2);
 		}
 	}
 }

@@ -10,6 +10,7 @@ import me.aiqi.A7weibo.entity.WeiboItem;
 import me.aiqi.A7weibo.entity.WeiboUser;
 import me.aiqi.A7weibo.network.NetworkCondition;
 import me.aiqi.A7weibo.util.WbUtil;
+import android.app.Activity;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.AsyncTask.Status;
@@ -22,6 +23,7 @@ import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.nostra13.universalimageloader.core.ImageLoader;
 
@@ -176,39 +178,46 @@ public class WeiboListAdapter extends BaseAdapter {
 		switch (mode) {
 		case UPDATE_MODE_REFRESH:
 			mWeiboItems.addAll(0, weiboItems);
+			Log.v(TAG, "refreshed, size: " + mWeiboItems.size());
 			break;
 
 		case UPDATE_MODE_LOAD_MORE:
 			mWeiboItems.addAll(weiboItems);
-			break;
-
-		default:
+			Log.v(TAG, "load more finished, size: " + mWeiboItems.size());
 			break;
 		}
 		Log.d(TAG, "data set changed, refresh UI");
 		notifyDataSetChanged();
 	}
 
-	/** It's the caller's duty to check the validity of AccessToken */
+	/** It's the caller's duty to check the validity of AccessToken and reauth */
 	public void loadMore(AccessToken accessToken) {
+		Log.v(TAG, "start loadMore");
 		downloadWeiboItems(accessToken, UPDATE_MODE_LOAD_MORE);
 	}
 
-	/** It's the caller's duty to check the validity of AccessToken */
+	/** It's the caller's duty to check the validity of AccessToken and reauth */
 	public void refresh(AccessToken accessToken) {
+		Log.v(TAG, "start refresh");
 		downloadWeiboItems(accessToken, UPDATE_MODE_REFRESH);
 	}
 
-	/** It's the caller's duty to check the validity of AccessToken */
+	/** It's the caller's duty to check the validity of AccessToken and reauth */
 	public void downloadWeiboItems(AccessToken accessToken, int refreshMode) {
+		if (accessToken.isExpired()) {
+			// the caller should handle the validity
+			Log.v(TAG, "access token expired");
+			return;
+		}
 		if (mTask != null) {
 			Status status = mTask.getStatus();
 			// another download task running or pending
 			if (status == Status.RUNNING || status == Status.PENDING) {
+				Log.v(TAG, "another task running or pending");
 				return;
 			}
 		}
-		if (checkDownloadCondition(accessToken)) {
+		if (checkDownloadCondition()) {
 			WeiboDownloader.Params params = new WeiboDownloader.Params();
 			params.put(WeiboDownloader.Params.ACCESS_TOKEN, accessToken.getAccessTokenString());
 			params.put(WeiboDownloader.Params.REFRESH_MODE, refreshMode);
@@ -221,7 +230,7 @@ public class WeiboListAdapter extends BaseAdapter {
 			}
 			mTask = mDownloader.execute(params);
 		} else {
-			// TODO: notify user of network problem;
+			Toast.makeText(MyApplication.getContext(), "网络连接异常", Toast.LENGTH_SHORT).show();
 		}
 	}
 
@@ -232,7 +241,7 @@ public class WeiboListAdapter extends BaseAdapter {
 	 * @return true if can perform download task (currently means network is
 	 *         connected, {@code false} otherwise
 	 */
-	private boolean checkDownloadCondition(AccessToken accessToken) {
+	private boolean checkDownloadCondition() {
 		return NetworkCondition.isOnline();
 	}
 
