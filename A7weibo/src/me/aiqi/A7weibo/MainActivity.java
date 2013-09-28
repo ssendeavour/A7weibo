@@ -1,12 +1,14 @@
 package me.aiqi.A7weibo;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
 import me.aiqi.A7weibo.downloader.WeiboDownloader;
 import me.aiqi.A7weibo.entity.AccessToken;
 import me.aiqi.A7weibo.entity.AppRegInfo;
+import me.aiqi.A7weibo.entity.TimeSlice;
 import me.aiqi.A7weibo.network.SslClient;
 import me.aiqi.A7weibo.util.AccessTokenKeeper;
 import me.aiqi.A7weibo.util.AppRegInfoHelper;
@@ -85,13 +87,13 @@ public class MainActivity extends ActionBarActivity {
 	public static final int TAB_WEIBO = 0;
 	public static final int TAB_ME = 2;
 
-	private SsoHandler mSsoHandler;
-	private AccessToken mAccessToken;
-	private Handler mHandler;
-
 	private SectionsPagerAdapter mSectionsPagerAdapter;
 	private ViewPager mViewPager;
 	private WeiboListFragment mWeiboFragment;
+
+	private SsoHandler mSsoHandler;
+	private AccessToken mAccessToken;
+	private Handler mHandler;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -122,9 +124,7 @@ public class MainActivity extends ActionBarActivity {
 							adapter = new WeiboListAdapter(MainActivity.this);
 							mWeiboFragment.setListAdapter(adapter);
 						}
-						WeiboDownloader.Params params = new WeiboDownloader.Params();
-						params.put(WeiboDownloader.Params.ACCESS_TOKEN, mAccessToken.getAccessTokenString());
-						adapter.getWeiboItems(params);
+						adapter.refresh(mAccessToken);
 					}
 					break;
 
@@ -187,9 +187,7 @@ public class MainActivity extends ActionBarActivity {
 		if (mAccessToken != null && !mAccessToken.isExpired() && mWeiboFragment == null) {
 			WeiboListAdapter adapter = (WeiboListAdapter) mWeiboFragment.getListAdapter();
 			if (adapter != null && adapter.getCount() > 0) {
-				WeiboDownloader.Params params = new WeiboDownloader.Params();
-				params.put(WeiboDownloader.Params.ACCESS_TOKEN, mAccessToken.getAccessTokenString());
-				adapter.getWeiboItems(params);
+				adapter.refresh(mAccessToken);
 			}
 		} else {
 			Log.v(TAG, "not refresh weibo items on startup(true if OAuth2 is not performed)");

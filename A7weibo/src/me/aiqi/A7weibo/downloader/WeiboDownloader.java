@@ -31,11 +31,13 @@ public class WeiboDownloader extends AsyncTask<WeiboDownloader.Params, Void, Arr
 	private static final String TAG = "WeiboDownloader";
 	private WeiboListAdapter mAdapter;
 	private Context mContext;
-	private boolean isRunning = false;
+	private int mRefreshMode;
 
 	public WeiboDownloader(WeiboListAdapter adapter, Context context) {
 		mAdapter = adapter;
 		mContext = context;
+		// in fact, refresh mode is set through download params every time call execute() 
+		mRefreshMode = WeiboListAdapter.UPDATE_MODE_LOAD_MORE;
 	}
 
 	public static class Params {
@@ -50,6 +52,9 @@ public class WeiboDownloader extends AsyncTask<WeiboDownloader.Params, Void, Arr
 		public static final String FEATURE = "feature"; // 过滤类型ID，0：全部、1：原创、2：图片、3：视频、4：音乐，默认为0。
 		public static final String TRIM_USER = "trim_user"; // int,
 															// 返回值中user字段开关，0：返回完整user字段、1：user字段仅返回user_id，默认为0。
+
+		/** 这个参数是程序定义的，Weibo API没有，参数值在{@link WeiboListAdapter}中定义 */
+		public static final String REFRESH_MODE = "refresh_mode";
 
 		public static final int FEATURE_ALL = 0; // 全部
 		public static final int FEATURE_ORIGNAL = 1; // 原创
@@ -85,12 +90,31 @@ public class WeiboDownloader extends AsyncTask<WeiboDownloader.Params, Void, Arr
 			return builder.build().toString();
 		}
 
+		/**
+		 * @return the value of any previous mapping with the specified key or
+		 *         null if there was no mapping.
+		 */
 		public String put(String key, String value) {
 			return mMap.put(key, value);
 		}
 
+		/**
+		 * @param value
+		 *            : long value will be converted to its string
+		 *            representation
+		 * @return the value of any previous mapping with the specified key or
+		 *         null if there was no mapping.
+		 */
+		public String put(String key, long value) {
+			return mMap.put(key, String.valueOf(value));
+		}
+
 		public String get(String key) {
 			return mMap.get(key);
+		}
+
+		public Map<String, String> getAll() {
+			return mMap;
 		}
 
 		public void clear() {
@@ -104,7 +128,6 @@ public class WeiboDownloader extends AsyncTask<WeiboDownloader.Params, Void, Arr
 
 	@Override
 	protected void onPreExecute() {
-		isRunning = true;
 		super.onPreExecute();
 	}
 
@@ -113,6 +136,11 @@ public class WeiboDownloader extends AsyncTask<WeiboDownloader.Params, Void, Arr
 		AccessToken accessToken = ((MyApplication) mContext.getApplicationContext()).getAccessToken();
 		if (accessToken == null || accessToken.isExpired()) {
 			return null;
+		}
+		if (params[0].get(Params.REFRESH_MODE) == null) {
+			throw new IllegalArgumentException("miss parameter: refresh_mode");
+		} else {
+			mRefreshMode = Integer.parseInt(params[0].remove(Params.REFRESH_MODE));
 		}
 		try {
 			String url = params[0].buildURL();
@@ -132,27 +160,18 @@ public class WeiboDownloader extends AsyncTask<WeiboDownloader.Params, Void, Arr
 	}
 
 	/**
-	 * if there is already a task running;
-	 * 
-	 * @return
-	 */
-	public boolean isRunning() {
-		return isRunning;
-	}
-
-	/**
 	 * notify view to update UI
 	 */
 	@Override
 	protected void onPostExecute(ArrayList<WeiboItem> result) {
 		super.onPostExecute(result);
 		if (result != null) {
-			Log.d(TAG, new StringBuilder("got ").append(result.size()).append(" new weibo, update adapter now").toString());
-			mAdapter.updateWeibolist(result);
+			Log.d(TAG, new StringBuilder("got ").append(result.size()).append(" new weibo, update adapter now")
+					.toString());
+			mAdapter.updateWeibolist(result, mRefreshMode);
 		} else {
 			Log.d(TAG, "got nothing");
 		}
-		isRunning = false;
 	}
 
 	/**

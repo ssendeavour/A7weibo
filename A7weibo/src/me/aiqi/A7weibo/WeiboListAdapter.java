@@ -3,17 +3,17 @@ package me.aiqi.A7weibo;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.nostra13.universalimageloader.core.ImageLoader;
-import com.nostra13.universalimageloader.core.assist.PauseOnScrollListener;
-
 import me.aiqi.A7weibo.downloader.WeiboDownloader;
+import me.aiqi.A7weibo.downloader.WeiboDownloader.Params;
+import me.aiqi.A7weibo.entity.AccessToken;
 import me.aiqi.A7weibo.entity.WeiboItem;
 import me.aiqi.A7weibo.entity.WeiboUser;
-import me.aiqi.A7weibo.network.ImageDownloader;
+import me.aiqi.A7weibo.network.NetworkCondition;
 import me.aiqi.A7weibo.util.WbUtil;
 import android.content.Context;
+import android.os.AsyncTask;
+import android.os.AsyncTask.Status;
 import android.text.Html;
-import android.util.AttributeSet;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -23,16 +23,26 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.nostra13.universalimageloader.core.ImageLoader;
+
 public class WeiboListAdapter extends BaseAdapter {
-	private static final String TAG = "WeiboListAdapter";
+	public static final String TAG = "WeiboListAdapter";
+
+	/** append new weibo items to the end of the inner list */
+	public static final int UPDATE_MODE_LOAD_MORE = 0;
+	/** insert new weibo items to the head of the inner List */
+	public static final int UPDATE_MODE_REFRESH = 1;
+
 	private Context mContext;
 	private List<WeiboItem> mWeiboItems;
 	private WeiboDownloader mDownloader;
+	private AsyncTask<Params, Void, ArrayList<WeiboItem>> mTask;
 
 	public WeiboListAdapter(Context context) {
 		mContext = context;
 		mWeiboItems = readWeiboItemsFromCache();
 		mDownloader = new WeiboDownloader(this, context);
+		mTask = null;
 	}
 
 	/**
@@ -161,18 +171,91 @@ public class WeiboListAdapter extends BaseAdapter {
 		return convertView;
 	}
 
-	public void updateWeibolist(List<WeiboItem> weiboItems) {
+	public void updateWeibolist(List<WeiboItem> weiboItems, int mode) {
 		// It's fairly rare that weiboItem == mWeiboItem, so we don't check, it don't worth
-		mWeiboItems = weiboItems;
+		switch (mode) {
+		case UPDATE_MODE_REFRESH:
+			mWeiboItems.addAll(0, weiboItems);
+			break;
+
+		case UPDATE_MODE_LOAD_MORE:
+			mWeiboItems.addAll(weiboItems);
+			break;
+
+		default:
+			break;
+		}
 		Log.d(TAG, "data set changed, refresh UI");
 		notifyDataSetChanged();
 	}
 
-	public void getWeiboItems(WeiboDownloader.Params params) {
-		if (mDownloader.isRunning()) {
-			Log.d(TAG, "another weibo download task is running");
-			return;
+	/** It's the caller's duty to check the validity of AccessToken */
+	public void loadMore(AccessToken accessToken) {
+		downloadWeiboItems(accessToken, UPDATE_MODE_LOAD_MORE);
+	}
+
+	/** It's the caller's duty to check the validity of AccessToken */
+	public void refresh(AccessToken accessToken) {
+		downloadWeiboItems(accessToken, UPDATE_MODE_REFRESH);
+	}
+
+	/** It's the caller's duty to check the validity of AccessToken */
+	public void downloadWeiboItems(AccessToken accessToken, int refreshMode) {
+		if (mTask != null) {
+			Status status = mTask.getStatus();
+			// another download task running or pending
+			if (status == Status.RUNNING || status == Status.PENDING) {
+				return;
+			}
 		}
-		mDownloader.execute(params);
+		if (checkDownloadCondition(accessToken)) {
+			WeiboDownloader.Params params = new WeiboDownloader.Params();
+			params.put(WeiboDownloader.Params.ACCESS_TOKEN, accessToken.getAccessTokenString());
+			params.put(WeiboDownloader.Params.REFRESH_MODE, refreshMode);
+			switch (refreshMode) {
+			case UPDATE_MODE_LOAD_MORE:
+				params.put(WeiboDownloader.Params.MAX_ID, getMaxId());
+				break;
+			case UPDATE_MODE_REFRESH:
+				params.put(WeiboDownloader.Params.SINCE_ID, getSinceId());
+			}
+			mTask = mDownloader.execute(params);
+		} else {
+			// TODO: notify user of network problem;
+		}
+	}
+
+	/**
+	 * check for network conditions, etc. but do not check for AccessToken
+	 * validity, the caller should check it in Activity or Fragment
+	 * 
+	 * @return true if can perform download task (currently means network is
+	 *         connected, {@code false} otherwise
+	 */
+	private boolean checkDownloadCondition(AccessToken accessToken) {
+		return NetworkCondition.isOnline();
+	}
+
+	/** @return id of most recent weibo item, 0 otherwise */
+	private long getSinceId() {
+		long sinceID = 0;
+		if (mWeiboItems != null && mWeiboItems.size() > 0) {
+			sinceID = mWeiboItems.get(0).getId();
+		}
+		return sinceID;
+	}
+
+	/**
+	 * used in load more method to return weibos whose id <= MaxId
+	 * 
+	 * @return id of weibo item in the end of the WeiboList minus one or 0
+	 *         otherwise
+	 */
+	private long getMaxId() {
+		long id = 0;
+		if (mWeiboItems != null && mWeiboItems.size() > 0) {
+			id = mWeiboItems.get(mWeiboItems.size() - 1).getId() - 1;
+		}
+		return id;
 	}
 }

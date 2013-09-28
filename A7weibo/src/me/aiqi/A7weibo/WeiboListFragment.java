@@ -42,17 +42,23 @@ public class WeiboListFragment extends ListFragment {
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
 
+		mWeiboListdapter.refresh(MyApplication.getContext().getAccessToken());
 		getListView().setOnScrollListener(new PauseOnScrollListener(ImageLoader.getInstance(), false, true));
-		AccessToken accessToken = ((MyApplication) getActivity().getApplicationContext()).getAccessToken();
 
-		if (!accessToken.isExpired() && mWeiboListdapter.getCount() == 0) {
-			Log.v(TAG, "WeiboListAdapter is empty, try load new weibo items");
-			WeiboDownloader.Params params = new WeiboDownloader.Params();
-			params.put(WeiboDownloader.Params.ACCESS_TOKEN, accessToken.getAccessTokenString());
-			mWeiboListdapter.getWeiboItems(params);
-		} else {
-			Log.v(TAG, "WeiboListAdapter items count: " + mWeiboListdapter.getCount());
-		}
+		new Runnable() {
+
+			@Override
+			public void run() {
+				try {
+					Thread.sleep(30000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				Log.w(TAG, "Loading more");
+				mWeiboListdapter.loadMore(MyApplication.getContext().getAccessToken());
+			}
+		};
 	}
 
 }
