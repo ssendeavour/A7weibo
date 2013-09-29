@@ -173,22 +173,36 @@ public class WeiboListAdapter extends BaseAdapter {
 		return convertView;
 	}
 
-	public synchronized void updateWeibolist(List<WeiboItem> weiboItems, int mode) {
-		// It's fairly rare that weiboItem == mWeiboItem, so we don't check, it don't worth
-		switch (mode) {
-		case UPDATE_MODE_REFRESH:
-			mWeiboItems.addAll(0, weiboItems);
-			Log.v(TAG, "refreshed, size: " + mWeiboItems.size());
-			break;
+	public void updateWeibolist(List<WeiboItem> weiboItems, int mode) {
+		String msg = null;
+		synchronized (this) {
+			switch (mode) {
+			case UPDATE_MODE_REFRESH:
+				mWeiboItems.addAll(0, weiboItems);
+				Log.v(TAG, "refreshed, size: " + mWeiboItems.size());
+				break;
 
-		case UPDATE_MODE_LOAD_MORE:
-			mWeiboItems.addAll(weiboItems);
-			Log.v(TAG, "load more finished, size: " + mWeiboItems.size());
-			break;
+			case UPDATE_MODE_LOAD_MORE:
+				mWeiboItems.addAll(weiboItems);
+				Log.v(TAG, "load more finished, size: " + mWeiboItems.size());
+				break;
+			}
+			Log.d(TAG, "refresh UI now");
+			// refresh UI even got zero new weibo to refresh created_at time, make user know weibo has indeed refreshed
+			notifyDataSetChanged();
+
+			final int size = weiboItems.size();
+			if (size > 0) {
+				msg = "获取到" + weiboItems.size() + "条微博";
+			} else {
+				if (mode == UPDATE_MODE_REFRESH) {
+					msg = mContext.getString(R.string.new_weibo_not_found);
+				} else {
+					msg = mContext.getString(R.string.no_more_old_weibo_try_to_refresh);
+				}
+			}
 		}
-		Log.d(TAG, "refresh UI now");
-		// refresh UI even got zero new weibo to refresh created_at time, make user know weibo has indeed refreshed
-		notifyDataSetChanged();
+		Toast.makeText(mContext, msg, Toast.LENGTH_LONG).show();
 	}
 
 	/** It's the caller's duty to check the validity of AccessToken and reauth */

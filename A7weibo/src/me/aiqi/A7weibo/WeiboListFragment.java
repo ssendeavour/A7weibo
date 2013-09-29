@@ -1,9 +1,5 @@
 package me.aiqi.A7weibo;
 
-import com.nostra13.universalimageloader.core.ImageLoader;
-import com.nostra13.universalimageloader.core.assist.PauseOnScrollListener;
-
-import me.aiqi.A7weibo.downloader.WeiboDownloader;
 import me.aiqi.A7weibo.entity.AccessToken;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
@@ -13,8 +9,13 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
-import android.widget.AbsListView.OnScrollListener;
+import android.widget.AbsListView;
+import android.widget.Button;
+
+import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.assist.PauseOnScrollListener;
 
 public class WeiboListFragment extends ListFragment {
 	private static final String TAG = "WeiboViewFragment";
@@ -43,6 +44,36 @@ public class WeiboListFragment extends ListFragment {
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
+		// set footer and header before set Adapter
+		View footer = LayoutInflater.from(getActivity()).inflate(R.layout.frag_weibo_list_footer, null);
+		footer.findViewById(R.id.btn_load_more).setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				loadMoreWeibo();
+			}
+		});
+
+		getListView().addFooterView(footer);
+		getListView().setFooterDividersEnabled(true);
+
+		getListView().setOnScrollListener(new AbsListView.OnScrollListener() {
+
+			@Override
+			public void onScrollStateChanged(AbsListView view, int scrollState) {
+
+			}
+
+			@Override
+			public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+				if (firstVisibleItem + visibleItemCount >= totalItemCount - 1) {
+					loadMoreWeibo();
+				}
+				Log.v(TAG, "firstVisibleItem:" + firstVisibleItem + ", visibleItemCount:" + visibleItemCount
+						+ ", totalItemCount:" + totalItemCount);
+			}
+		});
+
 		mWeiboListdapter = new WeiboListAdapter(getActivity());
 		setListAdapter(mWeiboListdapter);
 		refreshWeiboList();
