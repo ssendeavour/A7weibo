@@ -6,6 +6,7 @@ import java.util.Map;
 
 import me.aiqi.A7weibo.MyApplication;
 import me.aiqi.A7weibo.WeiboListAdapter;
+import me.aiqi.A7weibo.WeiboListCallback;
 import me.aiqi.A7weibo.entity.AccessToken;
 import me.aiqi.A7weibo.entity.WeiboItem;
 import me.aiqi.A7weibo.entity.WeiboUser;
@@ -34,6 +35,9 @@ public class WeiboDownloader extends AsyncTask<WeiboDownloader.Params, Void, Arr
 	private int mRefreshMode;
 
 	public WeiboDownloader(WeiboListAdapter adapter, Context context) {
+		if (!(context instanceof WeiboListCallback)) {
+			Log.e(TAG, "context must implements WeiboListCallback interface");
+		}
 		mAdapter = adapter;
 		mContext = context;
 		// in fact, refresh mode is set through download params every time call execute() 
@@ -172,6 +176,8 @@ public class WeiboDownloader extends AsyncTask<WeiboDownloader.Params, Void, Arr
 		} else {
 			Log.d(TAG, "got nothing");
 		}
+		// Notify PullTORefreshattacher refresh has completed
+		((WeiboListCallback) mContext).getPullToRefreshAttacher().setRefreshComplete();
 	}
 
 	/**

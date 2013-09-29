@@ -37,16 +37,11 @@ public class WeiboListAdapter extends BaseAdapter {
 
 	private Context mContext;
 	private List<WeiboItem> mWeiboItems;
-	//	private WeiboDownloader mDownloader;
 	private AsyncTask<Params, Void, ArrayList<WeiboItem>> mTask;
 
 	public WeiboListAdapter(Context context) {
-		if (!(context instanceof WeiboListCallback)) {
-			Log.e(TAG, "context must implements WeiboListCallback interface");
-		}
 		mContext = context;
 		mWeiboItems = readWeiboItemsFromCache();
-		//		mDownloader = new WeiboDownloader(this, context);
 		mTask = null;
 	}
 
@@ -204,8 +199,6 @@ public class WeiboListAdapter extends BaseAdapter {
 					msg = mContext.getString(R.string.no_more_old_weibo_try_to_refresh);
 				}
 			}
-			// Notify PullToRefreshAttacher that the refresh has finished
-			((WeiboListCallback) mContext).getPullToRefreshAttacher().setRefreshComplete();
 		}
 		Toast.makeText(mContext, msg, Toast.LENGTH_LONG).show();
 	}
