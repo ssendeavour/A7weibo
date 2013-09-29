@@ -25,8 +25,14 @@ public class WeiboListFragment extends ListFragment {
 	}
 
 	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setHasOptionsMenu(true);
+	}
+
+	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		View view = inflater.inflate(R.layout.frag_weibo_list, container, false);
+		View view = inflater.inflate(R.layout.list_content, container, false);
 		return view;
 	}
 
@@ -41,6 +47,30 @@ public class WeiboListFragment extends ListFragment {
 		setListAdapter(mWeiboListdapter);
 		refreshWeiboList();
 		getListView().setOnScrollListener(new PauseOnScrollListener(ImageLoader.getInstance(), false, true));
+	}
+
+	@Override
+	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+		inflater.inflate(R.menu.main_activity_actions, menu);
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+		case R.id.action_refresh:
+			Log.v(TAG, "Refresh menu clicked");
+			refreshWeiboList();
+			return true;
+
+		case R.id.action_load_more:
+			Log.v(TAG, "Load more menu clicked");
+			loadMoreWeibo();
+			return true;
+
+		default:
+			return super.onOptionsItemSelected(item);
+		}
+
 	}
 
 	public void refreshWeiboList() {

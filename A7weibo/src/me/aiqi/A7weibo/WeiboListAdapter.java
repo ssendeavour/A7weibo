@@ -37,13 +37,13 @@ public class WeiboListAdapter extends BaseAdapter {
 
 	private Context mContext;
 	private List<WeiboItem> mWeiboItems;
-	private WeiboDownloader mDownloader;
+	//	private WeiboDownloader mDownloader;
 	private AsyncTask<Params, Void, ArrayList<WeiboItem>> mTask;
 
 	public WeiboListAdapter(Context context) {
 		mContext = context;
 		mWeiboItems = readWeiboItemsFromCache();
-		mDownloader = new WeiboDownloader(this, context);
+		//		mDownloader = new WeiboDownloader(this, context);
 		mTask = null;
 	}
 
@@ -173,7 +173,7 @@ public class WeiboListAdapter extends BaseAdapter {
 		return convertView;
 	}
 
-	public void updateWeibolist(List<WeiboItem> weiboItems, int mode) {
+	public synchronized void updateWeibolist(List<WeiboItem> weiboItems, int mode) {
 		// It's fairly rare that weiboItem == mWeiboItem, so we don't check, it don't worth
 		switch (mode) {
 		case UPDATE_MODE_REFRESH:
@@ -186,7 +186,8 @@ public class WeiboListAdapter extends BaseAdapter {
 			Log.v(TAG, "load more finished, size: " + mWeiboItems.size());
 			break;
 		}
-		Log.d(TAG, "data set changed, refresh UI");
+		Log.d(TAG, "refresh UI now");
+		// refresh UI even got zero new weibo to refresh created_at time, make user know weibo has indeed refreshed
 		notifyDataSetChanged();
 	}
 
@@ -228,7 +229,7 @@ public class WeiboListAdapter extends BaseAdapter {
 			case UPDATE_MODE_REFRESH:
 				params.put(WeiboDownloader.Params.SINCE_ID, getSinceId());
 			}
-			mTask = mDownloader.execute(params);
+			mTask = new WeiboDownloader(this, mContext).execute(params);
 		} else {
 			Toast.makeText(MyApplication.getContext(), "网络连接异常", Toast.LENGTH_SHORT).show();
 		}

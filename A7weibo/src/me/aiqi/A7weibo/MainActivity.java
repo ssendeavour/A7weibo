@@ -200,27 +200,12 @@ public class MainActivity extends ActionBarActivity {
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		getMenuInflater().inflate(R.menu.main_activity_actions, menu);
 		return super.onCreateOptionsMenu(menu);
 	}
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		switch (item.getItemId()) {
-		case R.id.action_refresh:
-			// refresh weibo list
-			Log.v(TAG, "Refresh menu clicked");
-			mWeiboFragment.refreshWeiboList();
-			return true;
-		case R.id.action_load_more:
-			Log.v(TAG, "Load more menu clicked");
-			mWeiboFragment.loadMoreWeibo();
-			return true;
-
-		default:
-			return super.onOptionsItemSelected(item);
-		}
-
+		return super.onOptionsItemSelected(item);
 	}
 
 	public class Authentication {

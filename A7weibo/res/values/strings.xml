@@ -6,5 +6,6 @@
     <string name="title_section_weibo">微博</string>
     <string name="title_section_comment_at">评论与@</string>
     <string name="title_section_me">我</string>
+    <string name="loading">加载中...</string>
 
 </resources>
