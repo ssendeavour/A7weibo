@@ -34,8 +34,6 @@ public class WeiboListFragment extends ListFragment implements PullToRefreshAtta
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		View view = inflater.inflate(R.layout.list_content, container, false);
-		mPullToRefreshAttacher = ((MainActivity) getActivity()).getPullToRefreshAttacher();
-		mPullToRefreshAttacher.addRefreshableView(getListView(), this);
 		return view;
 	}
 
@@ -46,6 +44,10 @@ public class WeiboListFragment extends ListFragment implements PullToRefreshAtta
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
+
+		if (!(getActivity() instanceof WeiboListCallback)) {
+			Log.e(TAG, "Activity must implements WeiboListCallback interface");
+		}
 		// set footer and header before set Adapter
 		//		View footer = LayoutInflater.from(getActivity()).inflate(R.layout.frag_weibo_list_footer, null);
 		//		footer.findViewById(R.id.btn_load_more).setOnClickListener(new OnClickListener() {
@@ -58,6 +60,8 @@ public class WeiboListFragment extends ListFragment implements PullToRefreshAtta
 		//
 		//		getListView().addFooterView(footer);
 		//		getListView().setFooterDividersEnabled(true);
+		mPullToRefreshAttacher = ((WeiboListCallback) getActivity()).getPullToRefreshAttacher();
+		mPullToRefreshAttacher.addRefreshableView(getListView(), this);
 
 		mWeiboListdapter = new WeiboListAdapter(getActivity());
 		setListAdapter(mWeiboListdapter);
@@ -85,7 +89,7 @@ public class WeiboListFragment extends ListFragment implements PullToRefreshAtta
 			public void onScrollStateChanged(AbsListView view, int scrollState) {
 				// when scroll near the end of the list, auto perform loadMoreWeibo
 				if (scrollState == SCROLL_STATE_IDLE
-						&& currentFirstVisibleItem + currentVisibleItemCount >= currentTotalItemCount - 1) {
+						&& currentFirstVisibleItem + currentVisibleItemCount >= currentTotalItemCount - 2) {
 					loadMoreWeibo();
 					Log.v(TAG, "firstVisibleItem:" + currentFirstVisibleItem + ", visibleItemCount:"
 							+ currentVisibleItemCount + ", totalItemCount:" + currentTotalItemCount);
@@ -151,7 +155,6 @@ public class WeiboListFragment extends ListFragment implements PullToRefreshAtta
 
 	@Override
 	public void onRefreshStarted(View view) {
-		// TODO Auto-generated method stub
-
+		refreshWeiboList();
 	}
 }
