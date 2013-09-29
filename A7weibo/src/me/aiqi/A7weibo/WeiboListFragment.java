@@ -1,5 +1,6 @@
 package me.aiqi.A7weibo;
 
+import uk.co.senab.actionbarpulltorefresh.extras.actionbarcompat.PullToRefreshAttacher;
 import me.aiqi.A7weibo.entity.AccessToken;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
@@ -9,16 +10,16 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
 
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.assist.PauseOnScrollListener;
 
-public class WeiboListFragment extends ListFragment {
+public class WeiboListFragment extends ListFragment implements PullToRefreshAttacher.OnRefreshListener {
 	private static final String TAG = WeiboListFragment.class.getSimpleName();
 	private WeiboListAdapter mWeiboListdapter;
+	private PullToRefreshAttacher mPullToRefreshAttacher;
 
 	// empty constructor is required as per Fragment docs
 	public WeiboListFragment() {
@@ -33,6 +34,8 @@ public class WeiboListFragment extends ListFragment {
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		View view = inflater.inflate(R.layout.list_content, container, false);
+		mPullToRefreshAttacher = ((MainActivity) getActivity()).getPullToRefreshAttacher();
+		mPullToRefreshAttacher.addRefreshableView(getListView(), this);
 		return view;
 	}
 
@@ -44,17 +47,17 @@ public class WeiboListFragment extends ListFragment {
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
 		// set footer and header before set Adapter
-		View footer = LayoutInflater.from(getActivity()).inflate(R.layout.frag_weibo_list_footer, null);
-		footer.findViewById(R.id.btn_load_more).setOnClickListener(new OnClickListener() {
-
-			@Override
-			public void onClick(View v) {
-				loadMoreWeibo();
-			}
-		});
-
-		getListView().addFooterView(footer);
-		getListView().setFooterDividersEnabled(true);
+		//		View footer = LayoutInflater.from(getActivity()).inflate(R.layout.frag_weibo_list_footer, null);
+		//		footer.findViewById(R.id.btn_load_more).setOnClickListener(new OnClickListener() {
+		//
+		//			@Override
+		//			public void onClick(View v) {
+		//				loadMoreWeibo();
+		//			}
+		//		});
+		//
+		//		getListView().addFooterView(footer);
+		//		getListView().setFooterDividersEnabled(true);
 
 		mWeiboListdapter = new WeiboListAdapter(getActivity());
 		setListAdapter(mWeiboListdapter);
@@ -144,5 +147,11 @@ public class WeiboListFragment extends ListFragment {
 		} else {
 			Log.v(TAG, "access token expired? :" + accessToken.isExpired());
 		}
+	}
+
+	@Override
+	public void onRefreshStarted(View view) {
+		// TODO Auto-generated method stub
+
 	}
 }

@@ -1,15 +1,12 @@
 package me.aiqi.A7weibo;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import me.aiqi.A7weibo.downloader.WeiboDownloader;
 import me.aiqi.A7weibo.entity.AccessToken;
 import me.aiqi.A7weibo.entity.AppRegInfo;
-import me.aiqi.A7weibo.entity.TimeSlice;
 import me.aiqi.A7weibo.network.SslClient;
 import me.aiqi.A7weibo.util.AccessTokenKeeper;
 import me.aiqi.A7weibo.util.AppRegInfoHelper;
@@ -27,9 +24,10 @@ import org.apache.http.util.EntityUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.R.bool;
+import uk.co.senab.actionbarpulltorefresh.extras.actionbarcompat.PullToRefreshAttacher;
+
+
 import android.annotation.SuppressLint;
-import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.Fragment;
@@ -40,14 +38,11 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBar.Tab;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
-import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ContextMenu.ContextMenuInfo;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -55,10 +50,9 @@ import com.weibo.sdk.android.Weibo;
 import com.weibo.sdk.android.WeiboAuthListener;
 import com.weibo.sdk.android.WeiboDialogError;
 import com.weibo.sdk.android.WeiboException;
-import com.weibo.sdk.android.sso.SsoHandler;
 
 @SuppressLint("HandlerLeak")
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends ActionBarActivity implements WeiboListCallback {
 	public static final String TAG = MainActivity.class.getSimpleName();
 
 	public static final int GET_ACCESS_TOKEN_FROM_CODE_START = 0x100;
@@ -97,6 +91,7 @@ public class MainActivity extends ActionBarActivity {
 	private SectionsPagerAdapter mSectionsPagerAdapter;
 	private ViewPager mViewPager;
 	private WeiboListFragment mWeiboFragment;
+	private PullToRefreshAttacher mPullToRefreshAttacher;
 
 	private AccessToken mAccessToken;
 	private Handler mHandler;
@@ -393,6 +388,12 @@ public class MainActivity extends ActionBarActivity {
 			actionBar.addTab(actionBar.newTab().setText(mSectionsPagerAdapter.getPageTitle(i))
 					.setTabListener(tabListener));
 		}
+		//PullToRefreshAttacher should be created in Activity:onCreate and then pulled in from Fragments as necessary.
+		mPullToRefreshAttacher = PullToRefreshAttacher.get(this);
+	}
+
+	public PullToRefreshAttacher getPullToRefreshAttacher() {
+		return mPullToRefreshAttacher;
 	}
 
 	/**
