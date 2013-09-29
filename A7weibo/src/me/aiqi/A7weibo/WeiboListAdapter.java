@@ -115,7 +115,7 @@ public class WeiboListAdapter extends BaseAdapter {
 			convertView = LayoutInflater.from(mContext).inflate(R.layout.frag_weibo_list_item, parent, false);
 			iv_avatar = (ImageView) convertView.findViewById(R.id.iv_avatar);
 			tv_nickname = (TextView) convertView.findViewById(R.id.tv_nickname);
-			tv_source = (TextView) convertView.findViewById(R.id.tv_source);
+			tv_source = (TextView) convertView.findViewById(R.id.tv_time_and_source);
 			tv_weibo_content = (TextView) convertView.findViewById(R.id.tv_weibo_content);
 			btn_comment = (Button) convertView.findViewById(R.id.btn_comment);
 			btn_forawrd = (Button) convertView.findViewById(R.id.btn_forawrd);

@@ -230,7 +230,7 @@ public class WeiboDownloader extends AsyncTask<WeiboDownloader.Params, Void, Arr
 					visiblity.setList_id(object.optInt("list_id"));
 				}
 				weiboItem.setVisible(visiblity);
-				Log.v(TAG, weiboItem.toString());
+				//				Log.v(TAG, weiboItem.toString());
 				list.add(weiboItem);
 			}
 		} catch (Exception e) {

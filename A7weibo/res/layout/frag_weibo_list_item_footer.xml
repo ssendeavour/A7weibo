@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="#EEE"
+    android:gravity="center_vertical"
+    android:orientation="horizontal" >
+
+    <!-- 转发 forward button -->
+
+    <Button
+        android:id="@+id/btn_forawrd"
+        android:layout_width="0dp"
+        android:layout_height="32dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginRight="2dp"
+        android:layout_weight="1"
+        android:background="#FFF"
+        android:drawableLeft="@drawable/ic_retweet"
+        android:drawablePadding="8dp"
+        android:paddingLeft="8dp"
+        android:paddingRight="8dp"
+        android:singleLine="true"
+        android:text=""
+        android:textColor="#000"
+        android:textSize="14sp" />
+
+    <!-- 评论 comment button -->
+
+    <Button
+        android:id="@+id/btn_comment"
+        android:layout_width="0dp"
+        android:layout_height="32dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginLeft="2dp"
+        android:layout_marginRight="2dp"
+        android:layout_weight="1"
+        android:background="#FFF"
+        android:drawableLeft="@drawable/ic_comment"
+        android:paddingLeft="8dp"
+        android:paddingRight="8dp"
+        android:singleLine="true"
+        android:text=""
+        android:textColor="#000"
+        android:textSize="14sp" />
+
+    <!-- 赞 like button -->
+
+    <Button
+        android:id="@+id/btn_like"
+        android:layout_width="0dp"
+        android:layout_height="32dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginLeft="2dp"
+        android:layout_weight="1"
+        android:background="#FFF"
+        android:drawableLeft="@drawable/ic_like"
+        android:paddingLeft="8dp"
+        android:paddingRight="8dp"
+        android:singleLine="true"
+        android:text=""
+        android:textColor="#000"
+        android:textSize="14sp" />
+
+</LinearLayout>

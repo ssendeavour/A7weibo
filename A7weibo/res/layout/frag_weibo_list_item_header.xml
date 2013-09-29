@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/weibo_avatar_small_side_length" >
+
+    <!-- user avatar -->
+
+    <ImageView
+        android:id="@+id/iv_avatar"
+        android:layout_width="@dimen/weibo_avatar_small_side_length"
+        android:layout_height="@dimen/weibo_avatar_small_side_length"
+        android:layout_marginRight="8dp"
+        android:contentDescription="@string/user_avatar"
+        android:minHeight="16dp"
+        android:minWidth="16dp"
+        android:src="@drawable/ic_launcher" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentTop="true"
+        android:layout_toRightOf="@id/iv_avatar"
+        android:orientation="vertical" >
+
+        <!-- 用户名（昵称） -->
+
+        <TextView
+            android:id="@+id/tv_nickname"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="5"
+            android:gravity="center_vertical"
+            android:singleLine="true"
+            android:text=""
+            android:textColor="#000" />
+
+        <!-- 微博发布时间、来源（设备） -->
+
+        <TextView
+            android:id="@+id/tv_time_and_source"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="3"
+            android:gravity="center_vertical"
+            android:singleLine="true"
+            android:text=""
+            android:textSize="12sp" />
+    </LinearLayout>
+
+</RelativeLayout>

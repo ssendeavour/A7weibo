@@ -12,13 +12,12 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
-import android.widget.Button;
 
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.assist.PauseOnScrollListener;
 
 public class WeiboListFragment extends ListFragment {
-	private static final String TAG = "WeiboViewFragment";
+	private static final String TAG = WeiboListFragment.class.getSimpleName();
 	private WeiboListAdapter mWeiboListdapter;
 
 	// empty constructor is required as per Fragment docs
@@ -57,27 +56,42 @@ public class WeiboListFragment extends ListFragment {
 		getListView().addFooterView(footer);
 		getListView().setFooterDividersEnabled(true);
 
-		getListView().setOnScrollListener(new AbsListView.OnScrollListener() {
+		mWeiboListdapter = new WeiboListAdapter(getActivity());
+		setListAdapter(mWeiboListdapter);
+		refreshWeiboList();
 
-			@Override
-			public void onScrollStateChanged(AbsListView view, int scrollState) {
+		class MyOnScrollListener extends PauseOnScrollListener {
+			private int currentFirstVisibleItem = 0;
+			private int currentVisibleItemCount = 0;
+			private int currentTotalItemCount = 0;
 
+			public MyOnScrollListener(ImageLoader imageLoader, boolean pauseOnScroll, boolean pauseOnFling) {
+				super(imageLoader, pauseOnScroll, pauseOnFling);
 			}
 
 			@Override
 			public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
-				if (firstVisibleItem + visibleItemCount >= totalItemCount - 1) {
-					loadMoreWeibo();
-				}
-				Log.v(TAG, "firstVisibleItem:" + firstVisibleItem + ", visibleItemCount:" + visibleItemCount
-						+ ", totalItemCount:" + totalItemCount);
-			}
-		});
+				currentFirstVisibleItem = firstVisibleItem;
+				currentVisibleItemCount = visibleItemCount;
+				currentTotalItemCount = totalItemCount;
 
-		mWeiboListdapter = new WeiboListAdapter(getActivity());
-		setListAdapter(mWeiboListdapter);
-		refreshWeiboList();
-		getListView().setOnScrollListener(new PauseOnScrollListener(ImageLoader.getInstance(), false, true));
+				super.onScroll(view, firstVisibleItem, visibleItemCount, totalItemCount);
+			}
+
+			@Override
+			public void onScrollStateChanged(AbsListView view, int scrollState) {
+				// when scroll near the end of the list, auto perform loadMoreWeibo
+				if (scrollState == SCROLL_STATE_IDLE
+						&& currentFirstVisibleItem + currentVisibleItemCount >= currentTotalItemCount - 1) {
+					loadMoreWeibo();
+					Log.v(TAG, "firstVisibleItem:" + currentFirstVisibleItem + ", visibleItemCount:"
+							+ currentVisibleItemCount + ", totalItemCount:" + currentTotalItemCount);
+				}
+				super.onScrollStateChanged(view, scrollState);
+			}
+		}
+
+		getListView().setOnScrollListener(new MyOnScrollListener(ImageLoader.getInstance(), true, true));
 	}
 
 	@Override
