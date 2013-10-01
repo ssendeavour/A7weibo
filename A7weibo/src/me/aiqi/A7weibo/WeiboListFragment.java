@@ -1,7 +1,8 @@
 package me.aiqi.A7weibo;
 
-import uk.co.senab.actionbarpulltorefresh.extras.actionbarcompat.PullToRefreshAttacher;
 import me.aiqi.A7weibo.entity.AccessToken;
+import me.aiqi.A7weibo.entity.Consts;
+import uk.co.senab.actionbarpulltorefresh.extras.actionbarcompat.PullToRefreshAttacher;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
 import android.util.Log;
@@ -85,9 +86,13 @@ public class WeiboListFragment extends ListFragment implements PullToRefreshAtta
 				super.onScroll(view, firstVisibleItem, visibleItemCount, totalItemCount);
 			}
 
+			/**
+			 * automatically load more Weibo when scroll near the end of the
+			 * list
+			 */
 			@Override
 			public void onScrollStateChanged(AbsListView view, int scrollState) {
-				// when scroll near the end of the list, auto perform loadMoreWeibo
+				// 
 				if (scrollState == SCROLL_STATE_IDLE
 						&& currentFirstVisibleItem + currentVisibleItemCount >= currentTotalItemCount - 2) {
 					loadMoreWeibo();
@@ -97,8 +102,9 @@ public class WeiboListFragment extends ListFragment implements PullToRefreshAtta
 				super.onScrollStateChanged(view, scrollState);
 			}
 		}
-
-		getListView().setOnScrollListener(new MyOnScrollListener(ImageLoader.getInstance(), true, true));
+		getListView().setOnScrollListener(
+				new MyOnScrollListener(ImageLoader.getInstance(), Consts.ImageLoader.PAUSE_ON_SCROLL,
+						Consts.ImageLoader.PAUSE_ON_FLING));
 	}
 
 	@Override
