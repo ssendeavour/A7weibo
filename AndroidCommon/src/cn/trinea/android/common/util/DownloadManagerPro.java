@@ -2,6 +2,7 @@ package cn.trinea.android.common.util;
 
 import java.lang.reflect.Method;
 
+import android.annotation.SuppressLint;
 import android.app.DownloadManager;
 import android.app.DownloadManager.Request;
 import android.database.Cursor;
@@ -167,7 +168,8 @@ public class DownloadManagerPro {
         return pauseDownload != null && resumeDownload != null;
     }
 
-    private static void initPauseMethod() {
+    @SuppressLint("NewApi")
+	private static void initPauseMethod() {
         if (isInitPauseDownload) {
             return;
         }
@@ -181,7 +183,8 @@ public class DownloadManagerPro {
         }
     }
 
-    private static void initResumeMethod() {
+    @SuppressLint("NewApi")
+	private static void initResumeMethod() {
         if (isInitResumeDownload) {
             return;
         }
