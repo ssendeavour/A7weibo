@@ -8,6 +8,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import me.aiqi.A7weibo.entity.AccessToken;
 import me.aiqi.A7weibo.entity.AppRegInfo;
 import me.aiqi.A7weibo.network.SslClient;
+import me.aiqi.A7weibo.network.WebViewActivity;
 import me.aiqi.A7weibo.util.AccessTokenKeeper;
 import me.aiqi.A7weibo.util.AppRegInfoHelper;
 
@@ -26,13 +27,14 @@ import org.json.JSONObject;
 
 import uk.co.senab.actionbarpulltorefresh.extras.actionbarcompat.PullToRefreshAttacher;
 
-
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBar.Tab;
@@ -179,7 +181,12 @@ public class MainActivity extends ActionBarActivity implements WeiboListCallback
 	protected void onStart() {
 		super.onStart();
 
-		new Authentication().login();
+//		new Authentication().login();
+
+		FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+		ft.addToBackStack(null);
+
+		new WebViewActivity().show(ft, "OAuth");
 
 		if (mAccessToken != null && !mAccessToken.isExpired() && mWeiboFragment != null) {
 			WeiboListAdapter adapter = (WeiboListAdapter) mWeiboFragment.getListAdapter();
