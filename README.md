@@ -17,11 +17,16 @@ Sina weibo Android client for Android 2.3 and up. (experimental)
 	+ 下拉刷新
 
 
-### current used open source library
+### currently used open source library
 
 
 - [Android-Universal-Image-Loader][image-loader]
 Powerful and flexible instrument for asynchronous loading, caching and displaying images on Android.
+
+- [AndroidCommon][android-common] specifically ImageCache, it will replace `Android-Universal-Image-Loader` after more tests
+trinea android common lib, include ImageCache, DropDownListView, DownloadManager, install apk silent and so on 
+http://www.trinea.cn/
+
 - [ActionBar-PullToRefresh][pull-refresh]
 Cloned from git on Sun Sep 29  CST 2013 evening, as it is under development and the API could change, it is reasonable to note down the cloned date.
 
@@ -39,3 +44,4 @@ The `ActionBar-PullToRefresh-actionbarcompat` relies on:
 
 [image-loader]: https://github.com/nostra13/Android-Universal-Image-Loader
 [pull-refresh]: https://github.com/chrisbanes/ActionBar-PullToRefresh
+[android-common]: https://github.com/Trinea/AndroidCommon/

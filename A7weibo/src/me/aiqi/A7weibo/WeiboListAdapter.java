@@ -10,12 +10,9 @@ import me.aiqi.A7weibo.entity.WeiboItem;
 import me.aiqi.A7weibo.entity.WeiboUser;
 import me.aiqi.A7weibo.network.NetworkCondition;
 import me.aiqi.A7weibo.util.WbUtil;
-import android.app.Activity;
 import android.content.Context;
-import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.AsyncTask.Status;
-import android.os.Debug;
 import android.text.Html;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -26,12 +23,6 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import cn.trinea.android.common.service.impl.ImageCache;
-import cn.trinea.android.common.service.impl.ImageCache.OnImageCallbackListener;
-
-import com.nostra13.universalimageloader.core.DisplayImageOptions;
-import com.nostra13.universalimageloader.core.ImageLoader;
 
 public class WeiboListAdapter extends BaseAdapter {
 	public static final String TAG = "WeiboListAdapter";
