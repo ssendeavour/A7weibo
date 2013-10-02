@@ -198,7 +198,7 @@ public class WeiboListAdapter extends BaseAdapter {
 				.append(weiboItem.getSource()).toString();
 		tv_source.setText(Html.fromHtml(sourceAndTimeHtmlString));
 
-		tv_weibo_content.setText(WeiboEmoticon.getRichWeiboText(mContext, weiboItem.getText()));
+		tv_weibo_content.setText(WeiboRichText.getRichWeiboText(mContext, weiboItem.getText()));
 		
 		// with next statement, click on a link will not open it in browser
 		tv_weibo_content.setMovementMethod(LinkMovementMethod.getInstance());
