@@ -34,11 +34,13 @@ public class WeiboListAdapter extends BaseAdapter {
 
 	private Context mContext;
 	private List<WeiboItem> mWeiboItems;
-	private AsyncTask<Params, Void, ArrayList<WeiboItem>> mTask;
+	private List<String> mAvatarUrlList;
+	private AsyncTask<Params, Void, ArrayList<WeiboItem>> mTask; // weiboitems downloader task
 
 	public WeiboListAdapter(Context context) {
 		mContext = context;
 		mWeiboItems = readWeiboItemsFromCache();
+		updateAvatarUrl(); // init mAvatarUrlList
 		mTask = null;
 	}
 
@@ -50,6 +52,20 @@ public class WeiboListAdapter extends BaseAdapter {
 	 */
 	private ArrayList<WeiboItem> readWeiboItemsFromCache() {
 		return new ArrayList<WeiboItem>();
+	}
+
+	private void updateAvatarUrl() {
+		if (mWeiboItems == null) {
+			mAvatarUrlList = null;
+			return;
+		}
+		ArrayList<String> urls = new ArrayList<String>();
+		for (WeiboItem item : mWeiboItems) {
+			urls.add(item.getUser() == null ? null : item.getUser().getProfile_image_url());
+		}
+		synchronized (this) {
+			mAvatarUrlList = urls;
+		}
 	}
 
 	public void onStop() {
@@ -150,7 +166,7 @@ public class WeiboListAdapter extends BaseAdapter {
 		if (user != null) {
 			tv_nickname.setText(user.getScreen_name());
 			//			ImageLoader.getInstance().displayImage(user.getProfile_image_url(), iv_avatar);
-			MyApplication.AVATAR_CACHE.get(user.getProfile_image_url(), iv_avatar);
+			MyApplication.AVATAR_CACHE.get(user.getProfile_image_url(), mAvatarUrlList, iv_avatar);
 		} else {
 			// make username to green to indicate no user info found
 			tv_nickname.setText(Html.fromHtml("<font color='#00FF00'>好像出错了=_=<br />没有微博信息</font>"));
@@ -194,6 +210,7 @@ public class WeiboListAdapter extends BaseAdapter {
 			Log.d(TAG, "refresh UI now");
 			// refresh UI even got zero new weibo to refresh created_at time, make user know weibo has indeed refreshed
 			notifyDataSetChanged();
+			updateAvatarUrl();
 
 			final int size = weiboItems.size();
 			if (size > 0) {

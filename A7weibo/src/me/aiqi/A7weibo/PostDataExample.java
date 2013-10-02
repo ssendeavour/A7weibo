@@ -13,9 +13,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 
-import android.support.v4.content.Loader;
-
-public class Weibo {
+public class PostDataExample {
 	
 
 	public void postData() {
