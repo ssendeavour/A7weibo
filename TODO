@@ -1,10 +1,10 @@
 # load more
 # pull down to refressh
-# Cache weibo items to SQLite
+ Cache weibo items to SQLite
 
-# new weibo
-# comment weibo
-# like weibo
-# forward weibo
-# show image in weibo
-# show original text of forwarded weibo
+ new weibo
+ comment weibo
+ like weibo
+ forward weibo
+ show image in weibo
+ show original text of forwarded weibo

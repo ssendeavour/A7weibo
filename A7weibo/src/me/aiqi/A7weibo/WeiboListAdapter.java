@@ -12,8 +12,10 @@ import me.aiqi.A7weibo.network.NetworkCondition;
 import me.aiqi.A7weibo.util.WbUtil;
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.AsyncTask.Status;
+import android.os.Debug;
 import android.text.Html;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -25,6 +27,10 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import cn.trinea.android.common.service.impl.ImageCache;
+import cn.trinea.android.common.service.impl.ImageCache.OnImageCallbackListener;
+
+import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
 
 public class WeiboListAdapter extends BaseAdapter {
@@ -53,6 +59,18 @@ public class WeiboListAdapter extends BaseAdapter {
 	 */
 	private ArrayList<WeiboItem> readWeiboItemsFromCache() {
 		return new ArrayList<WeiboItem>();
+	}
+
+	public void onStop() {
+		if (mTask != null) {
+			mTask.cancel(true);
+			mTask = null;
+		}
+		writeWeiboItemsToCache();
+	}
+
+	private void writeWeiboItemsToCache() {
+
 	}
 
 	@Override
@@ -140,11 +158,8 @@ public class WeiboListAdapter extends BaseAdapter {
 		WeiboUser user = weiboItem.getUser();
 		if (user != null) {
 			tv_nickname.setText(user.getScreen_name());
-			// start async task to set user's avatar
-			// new ImageDownloader().download(user.getProfile_image_url(),
-			// iv_avatar);
-			ImageLoader.getInstance().displayImage(user.getProfile_image_url(), iv_avatar);
-
+			//			ImageLoader.getInstance().displayImage(user.getProfile_image_url(), iv_avatar);
+			MyApplication.AVATAR_CACHE.get(user.getProfile_image_url(), iv_avatar);
 		} else {
 			// make username to green to indicate no user info found
 			tv_nickname.setText(Html.fromHtml("<font color='#00FF00'>好像出错了=_=<br />没有微博信息</font>"));
@@ -191,7 +206,7 @@ public class WeiboListAdapter extends BaseAdapter {
 
 			final int size = weiboItems.size();
 			if (size > 0) {
-				msg = "获取到" + weiboItems.size() + "条微博";
+				msg = mContext.getString(R.string.got) + weiboItems.size() + mContext.getString(R.string.new_weibo);
 			} else {
 				if (mode == UPDATE_MODE_REFRESH) {
 					msg = mContext.getString(R.string.new_weibo_not_found);
@@ -220,6 +235,7 @@ public class WeiboListAdapter extends BaseAdapter {
 		if (accessToken.isExpired()) {
 			// the caller should handle the validity
 			Log.v(TAG, "access token expired");
+			onDownloadCompleted();
 			return;
 		}
 		if (mTask != null) {
@@ -244,6 +260,7 @@ public class WeiboListAdapter extends BaseAdapter {
 			mTask = new WeiboDownloader(this, mContext).execute(params);
 		} else {
 			Toast.makeText(MyApplication.getContext(), "网络连接异常", Toast.LENGTH_SHORT).show();
+			onDownloadCompleted();
 		}
 	}
 
@@ -279,5 +296,9 @@ public class WeiboListAdapter extends BaseAdapter {
 			id = mWeiboItems.get(mWeiboItems.size() - 1).getId() - 1;
 		}
 		return id;
+	}
+
+	protected void onDownloadCompleted() {
+		((MainActivity) mContext).getPullToRefreshAttacher().setRefreshComplete();
 	}
 }

@@ -49,18 +49,7 @@ public class WeiboListFragment extends ListFragment implements PullToRefreshAtta
 		if (!(getActivity() instanceof WeiboListCallback)) {
 			Log.e(TAG, "Activity must implements WeiboListCallback interface");
 		}
-		// set footer and header before set Adapter
-		//		View footer = LayoutInflater.from(getActivity()).inflate(R.layout.frag_weibo_list_footer, null);
-		//		footer.findViewById(R.id.btn_load_more).setOnClickListener(new OnClickListener() {
-		//
-		//			@Override
-		//			public void onClick(View v) {
-		//				loadMoreWeibo();
-		//			}
-		//		});
-		//
-		//		getListView().addFooterView(footer);
-		//		getListView().setFooterDividersEnabled(true);
+
 		mPullToRefreshAttacher = ((WeiboListCallback) getActivity()).getPullToRefreshAttacher();
 		mPullToRefreshAttacher.addRefreshableView(getListView(), this);
 
@@ -142,6 +131,7 @@ public class WeiboListFragment extends ListFragment implements PullToRefreshAtta
 			}
 		} else {
 			Log.v(TAG, "access token expired? :" + accessToken.isExpired());
+			((MainActivity) getActivity()).reAuthentication();
 		}
 	}
 
@@ -156,6 +146,7 @@ public class WeiboListFragment extends ListFragment implements PullToRefreshAtta
 			}
 		} else {
 			Log.v(TAG, "access token expired? :" + accessToken.isExpired());
+			((MainActivity) getActivity()).reAuthentication();
 		}
 	}
 

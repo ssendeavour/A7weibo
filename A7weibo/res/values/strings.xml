@@ -9,7 +9,9 @@
     <string name="loading">加载中...</string>
     <string name="load_more">加载更多</string>
     <string name="no_more_old_weibo_try_to_refresh">旧微博都看完啦，试试刷新</string>
-    <string name="new_weibo_not_found">没有找到新微博</string>
+    <string name="new_weibo_not_found">没有新微博</string>
     <string name="user_avatar">avatar</string>
+    <string name="got">获取到</string>
+    <string name="new_weibo">条微博</string>
 
 </resources>

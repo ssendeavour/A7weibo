@@ -181,12 +181,7 @@ public class MainActivity extends ActionBarActivity implements WeiboListCallback
 	protected void onStart() {
 		super.onStart();
 
-//		new Authentication().login();
-
-		FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-		ft.addToBackStack(null);
-
-		new WebViewActivity().show(ft, "OAuth");
+		new Authentication().login();
 
 		if (mAccessToken != null && !mAccessToken.isExpired() && mWeiboFragment != null) {
 			WeiboListAdapter adapter = (WeiboListAdapter) mWeiboFragment.getListAdapter();
@@ -352,6 +347,10 @@ public class MainActivity extends ActionBarActivity implements WeiboListCallback
 				};
 			}.start();
 		}
+	}
+
+	public void reAuthentication() {
+		new Authentication().auth();
 	}
 
 	private void initUI() {

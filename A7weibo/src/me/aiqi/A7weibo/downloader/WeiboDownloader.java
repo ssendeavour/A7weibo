@@ -170,11 +170,11 @@ public class WeiboDownloader extends AsyncTask<WeiboDownloader.Params, Void, Arr
 	protected void onPostExecute(ArrayList<WeiboItem> result) {
 		super.onPostExecute(result);
 		if (result != null) {
-			Log.d(TAG, new StringBuilder("got ").append(result.size()).append(" new weibo, update adapter now")
+			Log.v(TAG, new StringBuilder("got ").append(result.size()).append(" new weibo, update adapter now")
 					.toString());
 			mAdapter.updateWeibolist(result, mRefreshMode);
 		} else {
-			Log.d(TAG, "got nothing");
+			Log.w(TAG, "got nothing");
 		}
 		// Notify PullTORefreshattacher refresh has completed
 		((WeiboListCallback) mContext).getPullToRefreshAttacher().setRefreshComplete();
