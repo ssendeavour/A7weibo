@@ -16,6 +16,7 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.os.AsyncTask.Status;
 import android.text.Html;
+import android.text.method.LinkMovementMethod;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -191,6 +192,8 @@ public class WeiboListAdapter extends BaseAdapter {
 				.append(weiboItem.getSource()).toString();
 		tv_source.setText(Html.fromHtml(sourceAndTimeHtmlString));
 		tv_weibo_content.setText(weiboItem.getText());
+		// with next statement, click on a link will not open it in browser
+		tv_weibo_content.setMovementMethod(LinkMovementMethod.getInstance());
 		btn_comment.setText(weiboItem.getComments_count() == 0 ? "评论" : String.valueOf(weiboItem.getComments_count()));
 		btn_forawrd.setText(weiboItem.getReposts_count() == 0 ? "转发" : String.valueOf(weiboItem.getReposts_count()));
 		btn_like.setText(weiboItem.getAttitudes_count() == 0 ? "赞" : String.valueOf(weiboItem.getAttitudes_count()));

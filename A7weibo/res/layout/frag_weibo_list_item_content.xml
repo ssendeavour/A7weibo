@@ -3,6 +3,7 @@
     android:id="@+id/tv_weibo_content"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:autoLink="web"
     android:background="#FFF"
     android:lineSpacingMultiplier="1.2"
     android:padding="8dp"
