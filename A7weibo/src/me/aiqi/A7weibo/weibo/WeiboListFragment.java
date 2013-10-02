@@ -1,5 +1,11 @@
-package me.aiqi.A7weibo;
+package me.aiqi.A7weibo.weibo;
 
+import me.aiqi.A7weibo.MainActivity;
+import me.aiqi.A7weibo.MyApplication;
+import me.aiqi.A7weibo.R;
+import me.aiqi.A7weibo.R.id;
+import me.aiqi.A7weibo.R.layout;
+import me.aiqi.A7weibo.R.menu;
 import me.aiqi.A7weibo.entity.AccessToken;
 import uk.co.senab.actionbarpulltorefresh.extras.actionbarcompat.PullToRefreshAttacher;
 import android.os.Bundle;

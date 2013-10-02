@@ -5,7 +5,7 @@
  * @author starfish
  */
 
-package me.aiqi.A7weibo;
+package me.aiqi.A7weibo.weibo;
 
 import uk.co.senab.actionbarpulltorefresh.extras.actionbarcompat.PullToRefreshAttacher;
 

@@ -5,13 +5,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 import me.aiqi.A7weibo.MyApplication;
-import me.aiqi.A7weibo.WeiboListAdapter;
-import me.aiqi.A7weibo.WeiboListCallback;
 import me.aiqi.A7weibo.entity.AccessToken;
 import me.aiqi.A7weibo.entity.WeiboItem;
 import me.aiqi.A7weibo.entity.WeiboUser;
 import me.aiqi.A7weibo.entity.WeiboVisiblity;
 import me.aiqi.A7weibo.network.SslClient;
+import me.aiqi.A7weibo.weibo.WeiboListAdapter;
+import me.aiqi.A7weibo.weibo.WeiboListCallback;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;

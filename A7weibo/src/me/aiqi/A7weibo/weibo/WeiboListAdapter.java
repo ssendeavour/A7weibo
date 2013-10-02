@@ -1,9 +1,15 @@
-package me.aiqi.A7weibo;
+package me.aiqi.A7weibo.weibo;
 
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
+import me.aiqi.A7weibo.MainActivity;
+import me.aiqi.A7weibo.MyApplication;
+import me.aiqi.A7weibo.R;
+import me.aiqi.A7weibo.R.id;
+import me.aiqi.A7weibo.R.layout;
+import me.aiqi.A7weibo.R.string;
 import me.aiqi.A7weibo.downloader.WeiboDownloader;
 import me.aiqi.A7weibo.downloader.WeiboDownloader.Params;
 import me.aiqi.A7weibo.entity.AccessToken;
@@ -191,7 +197,9 @@ public class WeiboListAdapter extends BaseAdapter {
 				.append("</font> 来自")
 				.append(weiboItem.getSource()).toString();
 		tv_source.setText(Html.fromHtml(sourceAndTimeHtmlString));
-		tv_weibo_content.setText(weiboItem.getText());
+
+		tv_weibo_content.setText(WeiboEmoticon.getRichWeiboText(mContext, weiboItem.getText()));
+		
 		// with next statement, click on a link will not open it in browser
 		tv_weibo_content.setMovementMethod(LinkMovementMethod.getInstance());
 		btn_comment.setText(weiboItem.getComments_count() == 0 ? "评论" : String.valueOf(weiboItem.getComments_count()));
