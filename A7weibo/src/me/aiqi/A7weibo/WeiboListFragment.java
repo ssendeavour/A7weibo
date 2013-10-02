@@ -1,7 +1,6 @@
 package me.aiqi.A7weibo;
 
 import me.aiqi.A7weibo.entity.AccessToken;
-import me.aiqi.A7weibo.entity.Consts;
 import uk.co.senab.actionbarpulltorefresh.extras.actionbarcompat.PullToRefreshAttacher;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
@@ -57,13 +56,20 @@ public class WeiboListFragment extends ListFragment implements PullToRefreshAtta
 		setListAdapter(mWeiboListdapter);
 		refreshWeiboList();
 
-		class MyOnScrollListener extends PauseOnScrollListener {
+		// load more automatically when scroll to the end of list
+		getListView().setOnScrollListener(new AbsListView.OnScrollListener() {
 			private int currentFirstVisibleItem = 0;
 			private int currentVisibleItemCount = 0;
 			private int currentTotalItemCount = 0;
 
-			public MyOnScrollListener(ImageLoader imageLoader, boolean pauseOnScroll, boolean pauseOnFling) {
-				super(imageLoader, pauseOnScroll, pauseOnFling);
+			@Override
+			public void onScrollStateChanged(AbsListView view, int scrollState) {
+				if (scrollState == SCROLL_STATE_IDLE
+						&& currentFirstVisibleItem + currentVisibleItemCount >= currentTotalItemCount - 2) {
+					loadMoreWeibo();
+					Log.v(TAG, "firstVisibleItem:" + currentFirstVisibleItem + ", visibleItemCount:"
+							+ currentVisibleItemCount + ", totalItemCount:" + currentTotalItemCount);
+				}
 			}
 
 			@Override
@@ -71,29 +77,8 @@ public class WeiboListFragment extends ListFragment implements PullToRefreshAtta
 				currentFirstVisibleItem = firstVisibleItem;
 				currentVisibleItemCount = visibleItemCount;
 				currentTotalItemCount = totalItemCount;
-
-				super.onScroll(view, firstVisibleItem, visibleItemCount, totalItemCount);
 			}
-
-			/**
-			 * automatically load more Weibo when scroll near the end of the
-			 * list
-			 */
-			@Override
-			public void onScrollStateChanged(AbsListView view, int scrollState) {
-				// 
-				if (scrollState == SCROLL_STATE_IDLE
-						&& currentFirstVisibleItem + currentVisibleItemCount >= currentTotalItemCount - 2) {
-					loadMoreWeibo();
-					Log.v(TAG, "firstVisibleItem:" + currentFirstVisibleItem + ", visibleItemCount:"
-							+ currentVisibleItemCount + ", totalItemCount:" + currentTotalItemCount);
-				}
-				super.onScrollStateChanged(view, scrollState);
-			}
-		}
-		getListView().setOnScrollListener(
-				new MyOnScrollListener(ImageLoader.getInstance(), Consts.ImageLoader.PAUSE_ON_SCROLL,
-						Consts.ImageLoader.PAUSE_ON_FLING));
+		});
 	}
 
 	@Override

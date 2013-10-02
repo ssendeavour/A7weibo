@@ -13,4 +13,8 @@ public class Consts {
 		public static final boolean DISK_CACHE = true;
 		public static final int DISK_CACHE_SIZE = 50 * 1024 * 1024; // 50MB, use Unlimited policy by default
 	}
+
+	public static class WeiboDownloader {
+		public static final int COUNT_PER_PAGE = 20; // weibo items to return per request, max:100
+	}
 }

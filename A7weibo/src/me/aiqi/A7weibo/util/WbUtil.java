@@ -56,12 +56,15 @@ public class WbUtil {
 	 * java.util.Date object
 	 * 
 	 * @param dateString
-	 * @return
-	 * @throws ParseException
+	 * @return Calendar representation or epoch if parse error
 	 */
-	public static Calendar getCalenderFromDateString(String dateString) throws ParseException {
+	public static Calendar getCalenderFromDateString(String dateString) {
 		Calendar cal = Calendar.getInstance();
-		cal.setTime(weiboCreateDateFormat.parse(dateString));
+		try {
+			cal.setTime(weiboCreateDateFormat.parse(dateString));
+		} catch (ParseException e) {
+			cal.setTime(new Date(0));
+		}
 		return cal;
 	}
 
@@ -120,12 +123,6 @@ public class WbUtil {
 	 * @return converted user-friendly data string, null if parse fail
 	 */
 	public static String getTimeString(String dateString) {
-		String result = null;
-		try {
-			result = getUserFriendlyTime(getCalenderFromDateString(dateString));
-		} catch (ParseException e) {
-			e.printStackTrace();
-		}
-		return result;
+		return getUserFriendlyTime(getCalenderFromDateString(dateString));
 	}
 }

@@ -1,11 +1,13 @@
 package me.aiqi.A7weibo;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 import me.aiqi.A7weibo.downloader.WeiboDownloader;
 import me.aiqi.A7weibo.downloader.WeiboDownloader.Params;
 import me.aiqi.A7weibo.entity.AccessToken;
+import me.aiqi.A7weibo.entity.Consts;
 import me.aiqi.A7weibo.entity.WeiboItem;
 import me.aiqi.A7weibo.entity.WeiboUser;
 import me.aiqi.A7weibo.network.NetworkCondition;
@@ -35,12 +37,14 @@ public class WeiboListAdapter extends BaseAdapter {
 	private Context mContext;
 	private List<WeiboItem> mWeiboItems;
 	private List<String> mAvatarUrlList;
+	private List<WeiboItem> mWeiboItemsOld;
 	private AsyncTask<Params, Void, ArrayList<WeiboItem>> mTask; // weiboitems downloader task
 
 	public WeiboListAdapter(Context context) {
 		mContext = context;
 		mWeiboItems = readWeiboItemsFromCache();
 		updateAvatarUrl(); // init mAvatarUrlList
+		mWeiboItemsOld = null;
 		mTask = null;
 	}
 
@@ -198,15 +202,40 @@ public class WeiboListAdapter extends BaseAdapter {
 		synchronized (this) {
 			switch (mode) {
 			case UPDATE_MODE_REFRESH:
-				mWeiboItems.addAll(0, weiboItems);
-				Log.v(TAG, "refreshed, size: " + mWeiboItems.size());
+				Log.v(TAG, "mode: refresh");
+				if (mWeiboItems.size() > 0) {
+					if (weiboItems.size() < Consts.WeiboDownloader.COUNT_PER_PAGE) {
+						// no time gap, cause we get less items than we request
+						mWeiboItems.addAll(0, weiboItems);
+						mWeiboItemsOld = null;
+					} else {
+						// some time gap between current time period and old time period appeared
+						mWeiboItemsOld = mWeiboItems;
+						mWeiboItems = weiboItems;
+					}
+				} else {
+					// load weibo items for the first time
+					mWeiboItems = weiboItems;
+				}
 				break;
 
 			case UPDATE_MODE_LOAD_MORE:
-				mWeiboItems.addAll(weiboItems);
-				Log.v(TAG, "load more finished, size: " + mWeiboItems.size());
+				Log.v(TAG, "mode: load more");
+				if (mWeiboItemsOld == null) {
+					mWeiboItems.addAll(weiboItems);
+				} else if (weiboItems.size() < Consts.WeiboDownloader.COUNT_PER_PAGE) {
+					// old time and current time has meet each other
+					mWeiboItems.addAll(weiboItems);
+					mWeiboItems.addAll(mWeiboItemsOld);
+					mWeiboItemsOld = null;
+				} else {
+					// time gap (may) continues
+					mWeiboItems.addAll(weiboItems);
+				}
 				break;
 			}
+			Log.v(TAG, "refreshed, size: " + mWeiboItems.size() + ", oldweibo: " + (mWeiboItemsOld == null ? "null"
+					: mWeiboItemsOld.size()));
 			Log.d(TAG, "refresh UI now");
 			// refresh UI even got zero new weibo to refresh created_at time, make user know weibo has indeed refreshed
 			notifyDataSetChanged();
@@ -258,16 +287,20 @@ public class WeiboListAdapter extends BaseAdapter {
 			WeiboDownloader.Params params = new WeiboDownloader.Params();
 			params.put(WeiboDownloader.Params.ACCESS_TOKEN, accessToken.getAccessTokenString());
 			params.put(WeiboDownloader.Params.REFRESH_MODE, refreshMode);
+			params.put(WeiboDownloader.Params.COUNT, Consts.WeiboDownloader.COUNT_PER_PAGE);
 			switch (refreshMode) {
 			case UPDATE_MODE_LOAD_MORE:
-				params.put(WeiboDownloader.Params.MAX_ID, getMaxId());
+				params.put(WeiboDownloader.Params.MAX_ID, getMaxId(mWeiboItems));
+				if (mWeiboItemsOld != null) {
+					params.put(WeiboDownloader.Params.SINCE_ID, getSinceId(mWeiboItemsOld));
+				}
 				break;
 			case UPDATE_MODE_REFRESH:
-				params.put(WeiboDownloader.Params.SINCE_ID, getSinceId());
+				params.put(WeiboDownloader.Params.SINCE_ID, getSinceId(mWeiboItems));
 			}
 			mTask = new WeiboDownloader(this, mContext).execute(params);
 		} else {
-			Toast.makeText(MyApplication.getContext(), "网络连接异常", Toast.LENGTH_SHORT).show();
+			Toast.makeText(MyApplication.getContext(), "请检查网络连接", Toast.LENGTH_SHORT).show();
 			onDownloadCompleted();
 		}
 	}
@@ -284,10 +317,10 @@ public class WeiboListAdapter extends BaseAdapter {
 	}
 
 	/** @return id of most recent weibo item, 0 otherwise */
-	private long getSinceId() {
+	private long getSinceId(List<WeiboItem> items) {
 		long sinceID = 0;
-		if (mWeiboItems != null && mWeiboItems.size() > 0) {
-			sinceID = mWeiboItems.get(0).getId();
+		if (items != null && items.size() > 0) {
+			sinceID = items.get(0).getId();
 		}
 		return sinceID;
 	}
@@ -298,10 +331,10 @@ public class WeiboListAdapter extends BaseAdapter {
 	 * @return id of weibo item in the end of the WeiboList minus one or 0
 	 *         otherwise
 	 */
-	private long getMaxId() {
+	private long getMaxId(List<WeiboItem> items) {
 		long id = 0;
-		if (mWeiboItems != null && mWeiboItems.size() > 0) {
-			id = mWeiboItems.get(mWeiboItems.size() - 1).getId() - 1;
+		if (items != null && items.size() > 0) {
+			id = items.get(items.size() - 1).getId() - 1;
 		}
 		return id;
 	}
