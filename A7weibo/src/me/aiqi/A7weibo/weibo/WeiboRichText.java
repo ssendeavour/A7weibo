@@ -25,8 +25,8 @@ public class WeiboRichText {
 	public static final HashMap<String, Integer> sDefaultEmoticonMap;
 	public static final Pattern sEmoticonPattern = Pattern.compile("(?<=\\[)(.+?)(?=\\])");
 	public static final Pattern sTopicPattern = Pattern.compile("(#.+?#)");
-	// at ends with colon, space, Chinese colon, or the end of string, Chinese colon is not allowed in user name, verified
-	public static final Pattern sAtPeoplePattern = Pattern.compile("(@.*?)((?=[: ，。：？；（）])|$|(?=[\\p{Punct}&&[^_-]]))");
+	// all punctuation are not allowed in user name except underscore and hyphen, \\p{Punct} only cover ASCII punctuation. Space and end of line are also a terminator of user name
+	public static final Pattern sAtPeoplePattern = Pattern.compile("(@.*?)((?=[ :，。：？；（）])|$|(?=[\\p{Punct}&&[^_-]]))");
 	public static final String TAG = "WeiboEmoticon";
 
 	static {
