@@ -25,7 +25,8 @@ public class WeiboRichText {
 	public static final HashMap<String, Integer> sDefaultEmoticonMap;
 	public static final Pattern sEmoticonPattern = Pattern.compile("(?<=\\[)(.+?)(?=\\])");
 	public static final Pattern sTopicPattern = Pattern.compile("(#.+?#)");
-	public static final Pattern sAtPeoplePattern = Pattern.compile("(@.+?)(?=[: ])");
+	// at ends with colon, space, Chinese colon, or the end of string, Chinese colon is not allowed in user name, verified
+	public static final Pattern sAtPeoplePattern = Pattern.compile("(@.*?)((?=[: ，。：？；（）])|$|(?=[\\p{Punct}&&[^_-]]))");
 	public static final String TAG = "WeiboEmoticon";
 
 	static {
@@ -125,33 +126,48 @@ public class WeiboRichText {
 
 	public static Spannable getRichWeiboText(Context context, String weiboText) {
 		SpannableStringBuilder builder = new SpannableStringBuilder(weiboText);
+		int start = 0;
+		Log.v(TAG, "Length: " + weiboText.length());
+
 		Matcher emoticonMatcher = sEmoticonPattern.matcher(weiboText);
 		while (emoticonMatcher.find()) {
 			String key = emoticonMatcher.group(1);
 			Log.v(TAG, "key: " + key);
 			if (sDefaultEmoticonMap.containsKey(key)) {
 				ImageSpan imageSpan = new ImageSpan(context, sDefaultEmoticonMap.get(key), ImageSpan.ALIGN_BASELINE);
-				int start = weiboText.indexOf("[" + key + "]");
+				start = weiboText.indexOf("[" + key + "]", start);
 				builder.setSpan(imageSpan, start, start + key.length() + 2, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+				//				Log.v(TAG, builder.subSequence(start, start + key.length() + 2).toString());
 			}
+			start += key.length() + 2;
 		}
 
+		start = 0;
 		Matcher topicMatcher = sTopicPattern.matcher(weiboText);
 		while (topicMatcher.find()) {
 			String topic = topicMatcher.group(1);
 			Log.v(TAG, "topic: " + topic);
 			WeiboTopicSpan topicSpan = new WeiboTopicSpan(topic);
-			int start = weiboText.indexOf(topic);
+			start = weiboText.indexOf(topic, start);
 			builder.setSpan(topicSpan, start, start + topic.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+			//			Log.v(TAG, builder.subSequence(start, start + topic.length()).toString());
+			start += topic.length();
 		}
 
+		start = 0;
 		Matcher userMatcher = sAtPeoplePattern.matcher(weiboText);
 		while (userMatcher.find()) {
 			String username = userMatcher.group(1);
+			if (username.length() <= 1) {
+				// skip single @ character
+				continue;
+			}
 			Log.v(TAG, "user: " + username);
 			WeiboAtPeopleSpan atSpan = new WeiboAtPeopleSpan(username);
-			int start = weiboText.indexOf(username);
+			start = weiboText.indexOf(username, start);
 			builder.setSpan(atSpan, start, start + username.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+			//			Log.v(TAG, builder.subSequence(start, start + username.length()).toString());
+			start += username.length();
 		}
 
 		return builder;
