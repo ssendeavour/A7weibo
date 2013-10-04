@@ -2,12 +2,19 @@ package me.aiqi.A7weibo;
 
 import me.aiqi.A7weibo.entity.AccessToken;
 import android.app.Application;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.util.Log;
 import android.view.View;
+import android.view.animation.AlphaAnimation;
 import android.widget.ImageView;
+import android.widget.TextView;
 import cn.trinea.android.common.service.impl.ImageCache;
 import cn.trinea.android.common.service.impl.ImageCache.OnImageCallbackListener;
+import cn.trinea.android.common.service.impl.ImageSDCardCache;
+import cn.trinea.android.common.service.impl.ImageSDCardCache.OnImageSDCallbackListener;
 
 public class MyApplication extends Application {
 	private static final String TAG = "MyApplication";
@@ -16,9 +23,17 @@ public class MyApplication extends Application {
 
 	// Image cacher and loader from AndroidCommon
 	public static final ImageCache AVATAR_CACHE = new ImageCache();
+	public static final ImageSDCardCache LARGE_IMAGE_CACHE = new ImageSDCardCache();
+	public static final AlphaAnimation IMAGE_APPEAR_ANIM;
 
 	static {
-		OnImageCallbackListener imageCallbackListener = new OnImageCallbackListener() {
+		IMAGE_APPEAR_ANIM = new AlphaAnimation(0.0F, 1.0F);
+		IMAGE_APPEAR_ANIM.setDuration(800);
+	}
+
+	static {
+
+		AVATAR_CACHE.setOnImageCallbackListener(new OnImageCallbackListener() {
 
 			private static final long serialVersionUID = 1L;
 
@@ -31,8 +46,32 @@ public class MyApplication extends Application {
 					imageView.setImageDrawable(imageDrawable);
 				}
 			}
-		};
-		AVATAR_CACHE.setOnImageCallbackListener(imageCallbackListener);
+		});
+	}
+
+	static {
+
+		LARGE_IMAGE_CACHE.setOnImageSDCallbackListener(new OnImageSDCallbackListener() {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void onImageLoaded(String imageUrl, String imagePath, View view, boolean isInCache) {
+				if (view == null) {
+					return;
+				}
+
+				Bitmap bitmap = BitmapFactory.decodeFile(imagePath);
+				if (bitmap == null) {
+					return;
+				}
+
+				((ImageView) view).setImageBitmap(bitmap);
+				if (!isInCache) {
+					view.startAnimation(IMAGE_APPEAR_ANIM);
+				}
+			}
+		});
 	}
 
 	public MyApplication() {

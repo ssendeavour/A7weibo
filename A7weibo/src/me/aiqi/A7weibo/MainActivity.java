@@ -54,6 +54,7 @@ import com.weibo.sdk.android.WeiboException;
 
 @SuppressLint("HandlerLeak")
 public class MainActivity extends ActionBarActivity implements WeiboListCallback {
+	
 	public static final String TAG = MainActivity.class.getSimpleName();
 
 	public static final int GET_ACCESS_TOKEN_FROM_CODE_START = 0x100;

@@ -22,6 +22,7 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.os.AsyncTask.Status;
 import android.text.Html;
+import android.text.TextUtils;
 import android.text.method.LinkMovementMethod;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -185,6 +186,22 @@ public class WeiboListAdapter extends BaseAdapter {
 			return convertView;
 		}
 
+		// load image
+		Log.v(TAG, "originalImg: " + weiboItem.getOriginal_pic());
+		Log.v(TAG, "Thumb:" + weiboItem.getThumbnail_pic());
+		if (!TextUtils.isEmpty(weiboItem.getBmiddle_pic())) {
+//			MyApplication.LARGE_IMAGE_CACHE.get(weiboItem.getBmiddle_pic(), view);
+		} else {
+			
+		}
+		Log.v(TAG, "medium:" + weiboItem.getPic_urls());
+		List<String> picUrls = weiboItem.getPic_urls();
+		if (picUrls != null && picUrls.size() > 0) {
+			for (String url : picUrls) {
+				Log.v(TAG, "配图:" + url);
+			}
+		}
+
 		String createTimeString = WbUtil.getTimeString(weiboItem.getCreated_at());
 		if (createTimeString == null) {
 			createTimeString = weiboItem.getCreated_at();
@@ -199,7 +216,7 @@ public class WeiboListAdapter extends BaseAdapter {
 		tv_source.setText(Html.fromHtml(sourceAndTimeHtmlString));
 
 		tv_weibo_content.setText(WeiboRichText.getRichWeiboText(mContext, weiboItem.getText()));
-		
+
 		// with next statement, click on a link will not open it in browser
 		tv_weibo_content.setMovementMethod(LinkMovementMethod.getInstance());
 		btn_comment.setText(weiboItem.getComments_count() == 0 ? "评论" : String.valueOf(weiboItem.getComments_count()));

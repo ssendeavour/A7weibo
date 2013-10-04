@@ -23,6 +23,7 @@ import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.assist.PauseOnScrollListener;
 
 public class WeiboListFragment extends ListFragment implements PullToRefreshAttacher.OnRefreshListener {
+
 	private static final String TAG = WeiboListFragment.class.getSimpleName();
 	private WeiboListAdapter mWeiboListdapter;
 	private PullToRefreshAttacher mPullToRefreshAttacher;
@@ -56,7 +57,7 @@ public class WeiboListFragment extends ListFragment implements PullToRefreshAtta
 		}
 
 		mPullToRefreshAttacher = ((WeiboListCallback) getActivity()).getPullToRefreshAttacher();
-		mPullToRefreshAttacher.addRefreshableView(getListView(), this);
+		mPullToRefreshAttacher.addRefreshableView(getView().findViewById(android.R.id.list), this);
 
 		mWeiboListdapter = new WeiboListAdapter(getActivity());
 		setListAdapter(mWeiboListdapter);
@@ -143,6 +144,7 @@ public class WeiboListFragment extends ListFragment implements PullToRefreshAtta
 
 	@Override
 	public void onRefreshStarted(View view) {
+		Log.v(TAG, "PullToRefresh: refresh starting");
 		refreshWeiboList();
 	}
 }
