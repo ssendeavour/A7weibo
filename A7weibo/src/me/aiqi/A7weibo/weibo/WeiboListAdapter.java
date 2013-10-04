@@ -162,12 +162,14 @@ public class WeiboListAdapter extends BaseAdapter {
 		// get weibo content
 
 		WeiboItem weiboItem = getItem(position);
+
 		if (weiboItem == null) {
 			// make weibo content green to indicate no weibo info
 			viewHolder.tv_weibo_content.setText(Html.fromHtml("<font color='#00FF00'> 好像出错了=_=<br />没有微博信息</font>"));
 			viewHolder.fl_additional_info.setVisibility(View.GONE);
 			return convertView;
 		}
+		Log.v(TAG, weiboItem.toString());
 
 		// set user name and avatar
 
@@ -209,13 +211,14 @@ public class WeiboListAdapter extends BaseAdapter {
 		} else if (weiboItem.getRetweeted_status() != null) {
 			// load original weibo
 
-			viewHolder.iv_image.setVisibility(View.GONE);
-			viewHolder.iv_image.setImageBitmap(Consts.PLACE_HOLDER_IMAGE_1x1);
 			viewHolder.fl_additional_info.setVisibility(View.VISIBLE);
 			viewHolder.ll_orig_weibo.setVisibility(View.VISIBLE);
+			viewHolder.iv_image.setVisibility(View.GONE);
+			viewHolder.iv_image.setImageBitmap(Consts.PLACE_HOLDER_IMAGE_1x1);
 
 			WeiboItem originalWeibo = weiboItem.getRetweeted_status();
 
+			// set original weibo content
 			viewHolder.tv_orig_weibo_content.setText(
 					WeiboRichText.getRichWeiboText(mContext,
 							"@" + originalWeibo.getUser().getName() + ":" + originalWeibo.getText()));
@@ -223,13 +226,12 @@ public class WeiboListAdapter extends BaseAdapter {
 			if (!TextUtils.isEmpty(originalWeibo.getThumbnail_pic())) {
 				// original weibo have image
 				viewHolder.iv_orig_image.setVisibility(View.VISIBLE);
-				viewHolder.iv_image.setImageResource(R.drawable.image_loading);
-				MyApplication.LARGE_IMAGE_CACHE.get(weiboItem.getThumbnail_pic(), viewHolder.iv_orig_image);
+				viewHolder.iv_orig_image.setImageResource(R.drawable.image_loading);
+				MyApplication.LARGE_IMAGE_CACHE.get(originalWeibo.getThumbnail_pic(), viewHolder.iv_orig_image);
 			} else {
 				// original don't have image
-				viewHolder.fl_additional_info.setVisibility(View.GONE);
+				viewHolder.iv_orig_image.setVisibility(View.GONE);
 				viewHolder.iv_orig_image.setImageBitmap(Consts.PLACE_HOLDER_IMAGE_1x1);
-				viewHolder.iv_image.setImageBitmap(Consts.PLACE_HOLDER_IMAGE_1x1);
 			}
 
 		} else {

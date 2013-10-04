@@ -11,28 +11,37 @@
         android:autoLink="web"
         android:background="#FFF"
         android:lineSpacingMultiplier="1.2"
-        android:padding="8dp"
+        android:paddingBottom="4dp"
+        android:paddingLeft="8dp"
+        android:paddingRight="8dp"
+        android:paddingTop="8dp"
         android:text=""
         android:textColor="#000"
-        android:textSize="16sp" />
+        android:textSize="14sp" />
 
-    <!-- optional information (image, orignal weibo) -->
+    <!-- optional information (image, orignal weibo) , use code control visibility -->
 
     <FrameLayout
         android:id="@+id/fl_additional_info"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:background="#EEE"
         android:visibility="gone" >
 
-        <!-- original weibo info -->
+        <!-- original weibo info, use code control visibility -->
 
         <LinearLayout
             android:id="@+id/ll_orig_weibo"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="12dp"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp"
+            android:paddingTop="6dp"
             android:visibility="gone" >
+
+            <!-- original weibo text -->
 
             <TextView
                 android:id="@+id/tv_orig_weibo_content"
@@ -41,17 +50,22 @@
                 android:autoLink="web"
                 android:background="#FFF"
                 android:lineSpacingMultiplier="1.2"
-                android:padding="8dp"
+                android:paddingBottom="4dp"
+                android:paddingLeft="8dp"
+                android:paddingRight="8dp"
+                android:paddingTop="4dp"
                 android:text=""
                 android:textColor="#000"
-                android:textSize="16sp" />
+                android:textSize="14sp" />
+
+            <!-- original weibo image, use code control visibility -->
 
             <ImageView
                 android:id="@+id/iv_orig_image"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:layout_margin="16dp"
+                android:background="#000"
                 android:visibility="gone" />
         </LinearLayout>
 
@@ -62,7 +76,11 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:layout_margin="6dp"
+            android:background="#FFF"
+            android:paddingBottom="4dp"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp"
+            android:paddingTop="4dp"
             android:scaleType="centerInside"
             android:visibility="gone" />
     </FrameLayout>

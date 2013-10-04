@@ -59,7 +59,9 @@ public class WeiboItem {
 		sb.append("text: " + this.text);
 		sb.append("评(" + this.comments_count + ")，转(" + this.reposts_count + ")，赞(" + this.attitudes_count + ")");
 		sb.append("可见性：" + this.visible.toString());
-		sb.append("原微博：" + this.retweeted_status.toString());
+		if (this.retweeted_status != null) {
+			sb.append("原微博：" + this.retweeted_status.toString());
+		}
 		return sb.toString();
 	}
 
