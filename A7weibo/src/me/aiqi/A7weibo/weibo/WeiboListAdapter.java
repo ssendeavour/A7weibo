@@ -145,6 +145,8 @@ public class WeiboListAdapter extends BaseAdapter {
 			viewHolder.tv_nickname = (TextView) convertView.findViewById(R.id.tv_nickname);
 			viewHolder.tv_source = (TextView) convertView.findViewById(R.id.tv_time_and_source);
 			viewHolder.tv_weibo_content = (TextView) convertView.findViewById(R.id.tv_weibo_content);
+			// important, otherwise, links are not clickable
+			viewHolder.tv_weibo_content.setMovementMethod(LinkMovementMethod.getInstance());
 			viewHolder.btn_comment = (Button) convertView.findViewById(R.id.btn_comment);
 			viewHolder.btn_forawrd = (Button) convertView.findViewById(R.id.btn_forawrd);
 			viewHolder.btn_like = (Button) convertView.findViewById(R.id.btn_like);
@@ -152,6 +154,8 @@ public class WeiboListAdapter extends BaseAdapter {
 			viewHolder.iv_image = (ImageView) convertView.findViewById(R.id.iv_image);
 			viewHolder.iv_orig_image = (ImageView) convertView.findViewById(R.id.iv_orig_image);
 			viewHolder.tv_orig_weibo_content = (TextView) convertView.findViewById(R.id.tv_orig_weibo_content);
+			// important, otherwise, links are not clickable
+			viewHolder.tv_orig_weibo_content.setMovementMethod(LinkMovementMethod.getInstance());
 			viewHolder.ll_orig_weibo = (LinearLayout) convertView.findViewById(R.id.ll_orig_weibo);
 			viewHolder.fl_additional_info = (FrameLayout) convertView.findViewById(R.id.fl_additional_info);
 			convertView.setTag(viewHolder);
@@ -250,8 +254,6 @@ public class WeiboListAdapter extends BaseAdapter {
 
 		viewHolder.tv_weibo_content.setText(WeiboRichText.getRichWeiboText(mContext, weiboItem.getText()));
 
-		// with next statement, click on a link will not open it in browser
-		viewHolder.tv_weibo_content.setMovementMethod(LinkMovementMethod.getInstance());
 		viewHolder.btn_comment.setText(weiboItem.getComments_count() == 0 ? "评论" : String.valueOf(weiboItem
 				.getComments_count()));
 		viewHolder.btn_forawrd.setText(weiboItem.getReposts_count() == 0 ? "转发" : String.valueOf(weiboItem

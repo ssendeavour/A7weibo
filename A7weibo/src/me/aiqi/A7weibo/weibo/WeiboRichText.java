@@ -19,16 +19,19 @@ import android.text.Spanned;
 import android.text.style.ClickableSpan;
 import android.text.style.ImageSpan;
 import android.util.Log;
+import android.util.Patterns;
 import android.view.View;
 
 public class WeiboRichText {
+	public static final String TAG = WeiboRichText.class.getSimpleName();
+
 	public static final HashMap<String, Integer> sDefaultEmoticonMap;
 	public static final Pattern sEmoticonPattern = Pattern.compile("(?<=\\[)(.+?)(?=\\])");
 	public static final Pattern sTopicPattern = Pattern.compile("(#.+?#)");
 	// all punctuation are not allowed in user name except underscore and hyphen, \\p{Punct} only cover ASCII punctuation. Space and end of line are also a terminator of user name
 	public static final Pattern sAtPeoplePattern = Pattern.compile("(@.*?)((?=[ :，。：？；（）])|$|(?=[\\p{Punct}&&[^_-]]))");
-	public static final String TAG = "WeiboEmoticon";
-
+	public static final Pattern sUrlPattern = Pattern
+			.compile("(https?\\:\\/\\/[-a-zA-Z0-9_]+?\\.[-a-zA-Z0-9\\?\\:_\\%\\=\\/\\.#\\+\\,\\$~]+)");
 	static {
 		sDefaultEmoticonMap = new HashMap<String, Integer>();
 		sDefaultEmoticonMap.put("草泥马", R.drawable.emot_default_shenshou_org);
@@ -168,6 +171,18 @@ public class WeiboRichText {
 			builder.setSpan(atSpan, start, start + username.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
 			//			Log.v(TAG, builder.subSequence(start, start + username.length()).toString());
 			start += username.length();
+		}
+
+		start = 0;
+		Matcher urlMatcher = sUrlPattern.matcher(weiboText);
+		while (urlMatcher.find()) {
+			String url = urlMatcher.group(1);
+			Log.v(TAG, "url: " + url);
+			WeiboUrlSpan urlSpan = new WeiboUrlSpan(url);
+			start = weiboText.indexOf(url, start);
+			builder.setSpan(urlSpan, start, start + url.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+			//			Log.v(TAG, builder.subSequence(start, start + username.length()).toString());
+			start += url.length();
 		}
 
 		return builder;
