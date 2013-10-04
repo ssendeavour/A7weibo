@@ -33,6 +33,7 @@ public class MyApplication extends Application {
 
 	static {
 
+		//		AVATAR_CACHE.setValidTime(61 * 86400 * 1000); // cache for two months
 		AVATAR_CACHE.setOnImageCallbackListener(new OnImageCallbackListener() {
 
 			private static final long serialVersionUID = 1L;
@@ -51,6 +52,7 @@ public class MyApplication extends Application {
 
 	static {
 
+		//		LARGE_IMAGE_CACHE.setValidTime(10 * 86400 * 1000); // cache for 10 days
 		LARGE_IMAGE_CACHE.setOnImageSDCallbackListener(new OnImageSDCallbackListener() {
 
 			private static final long serialVersionUID = 1L;

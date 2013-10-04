@@ -31,6 +31,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -129,6 +130,7 @@ public class WeiboListAdapter extends BaseAdapter {
 		public ImageView iv_orig_image;
 		public TextView tv_orig_weibo_content;
 		public LinearLayout ll_orig_weibo;
+		public FrameLayout fl_additional_info;
 	}
 
 	@Override
@@ -151,22 +153,24 @@ public class WeiboListAdapter extends BaseAdapter {
 			viewHolder.iv_orig_image = (ImageView) convertView.findViewById(R.id.iv_orig_image);
 			viewHolder.tv_orig_weibo_content = (TextView) convertView.findViewById(R.id.tv_orig_weibo_content);
 			viewHolder.ll_orig_weibo = (LinearLayout) convertView.findViewById(R.id.ll_orig_weibo);
-
+			viewHolder.fl_additional_info = (FrameLayout) convertView.findViewById(R.id.fl_additional_info);
 			convertView.setTag(viewHolder);
 		} else {
 			viewHolder = (ViewHolder) convertView.getTag();
 		}
 
+		// get weibo content
 		WeiboItem weiboItem = getItem(position);
 		if (weiboItem == null) {
 			// make weibo content green to indicate no weibo info
 			viewHolder.tv_weibo_content.setText(Html.fromHtml("<font color='#00FF00'> 好像出错了=_=<br />没有微博信息</font>"));
 			return convertView;
 		}
+
+		// display user name and avatar
 		WeiboUser user = weiboItem.getUser();
 		if (user != null) {
 			viewHolder.tv_nickname.setText(user.getScreen_name());
-			//			ImageLoader.getInstance().displayImage(user.getProfile_image_url(), iv_avatar);
 			MyApplication.AVATAR_CACHE.get(user.getProfile_image_url(), mAvatarUrlList, viewHolder.iv_avatar);
 		} else {
 			// make username to green to indicate no user info found
@@ -175,29 +179,25 @@ public class WeiboListAdapter extends BaseAdapter {
 			return convertView;
 		}
 
-		// load image
-		Log.v(TAG, "originalImg: " + weiboItem.getOriginal_pic());
-		Log.v(TAG, "Thumb:" + weiboItem.getThumbnail_pic());
-		if (!TextUtils.isEmpty(weiboItem.getBmiddle_pic())) {
-			MyApplication.LARGE_IMAGE_CACHE.get(weiboItem.getBmiddle_pic(), viewHolder.iv_image);
-			viewHolder.iv_image.setVisibility(View.VISIBLE);
-			viewHolder.ll_orig_weibo.setVisibility(View.GONE);
-		} else {
-
-		}
-		Log.v(TAG, "medium:" + weiboItem.getPic_urls());
-		List<String> picUrls = weiboItem.getPic_urls();
-		if (picUrls != null && picUrls.size() > 0) {
-			for (String url : picUrls) {
-				Log.v(TAG, "配图:" + url);
-			}
-		}
-
+		// set weibo created_at time
 		String createTimeString = WbUtil.getTimeString(weiboItem.getCreated_at());
 		if (createTimeString == null) {
 			createTimeString = weiboItem.getCreated_at();
+			Log.d(TAG, "can't parse created_at time:" + createTimeString);
 		}
 		Log.v(TAG, createTimeString);
+
+		// load middle size image if have one
+		if (!TextUtils.isEmpty(weiboItem.getBmiddle_pic())) {
+			MyApplication.LARGE_IMAGE_CACHE.get(weiboItem.getThumbnail_pic(), viewHolder.iv_image);
+			viewHolder.fl_additional_info.setVisibility(View.VISIBLE);
+			viewHolder.iv_image.setVisibility(View.VISIBLE);
+			viewHolder.ll_orig_weibo.setVisibility(View.GONE);
+		} else {
+			viewHolder.fl_additional_info.setVisibility(View.GONE);
+			viewHolder.iv_image.setImageResource(0);
+			viewHolder.iv_image.setVisibility(View.GONE);
+		}
 
 		String sourceAndTimeHtmlString = new StringBuilder()
 				.append("<font color='#FFCC00'>")

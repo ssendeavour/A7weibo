@@ -16,10 +16,14 @@
         android:textColor="#000"
         android:textSize="16sp" />
 
+    <!-- optional information (image, orignal weibo) -->
+
     <FrameLayout
         android:id="@+id/fl_additional_info"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" >
+        android:layout_height="wrap_content"
+        android:layout_margin="12dp"
+        android:visibility="gone" >
 
         <!-- original weibo info -->
 
@@ -44,15 +48,20 @@
 
             <ImageView
                 android:id="@+id/iv_orig_image"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_margin="6dp"
                 android:visibility="gone" />
         </LinearLayout>
 
         <ImageView
             android:id="@+id/iv_image"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_margin="6dp"
+            android:scaleType="centerInside"
             android:visibility="gone" />
     </FrameLayout>
 
