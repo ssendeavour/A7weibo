@@ -4,5 +4,6 @@
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
     <dimen name="weibo_avatar_small_side_length">36dp</dimen>
+    <dimen name="weibo_text_size">16sp</dimen>
 
 </resources>
