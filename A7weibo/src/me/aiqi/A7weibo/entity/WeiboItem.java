@@ -4,10 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.R.string;
 import android.text.TextUtils;
 import android.util.Log;
+import android.widget.Toast;
 
 /**
  * 代表一条微博：见：http://open.weibo.com/wiki/2/statuses/friends_timeline
@@ -56,6 +59,7 @@ public class WeiboItem {
 		sb.append("text: " + this.text);
 		sb.append("评(" + this.comments_count + ")，转(" + this.reposts_count + ")，赞(" + this.attitudes_count + ")");
 		sb.append("可见性：" + this.visible.toString());
+		sb.append("原微博：" + this.retweeted_status.toString());
 		return sb.toString();
 	}
 
@@ -244,7 +248,8 @@ public class WeiboItem {
 	}
 
 	/**
-	 * parse json string and encapsulate Weibo items into ArrayList<WeiboItem>
+	 * parse json string and encapsulate Weibo items into ArrayList<WeiboItem>,
+	 * return null if parse error
 	 * 
 	 * @param json
 	 * @return ArrayList<WeiboItem>
@@ -255,61 +260,78 @@ public class WeiboItem {
 			return null;
 		}
 		Log.v(TAG, "json: length: " + json.length());
-		final ArrayList<WeiboItem> list = new ArrayList<WeiboItem>();
 		try {
-			JSONObject object = new JSONObject(json);
+			final ArrayList<WeiboItem> list = new ArrayList<WeiboItem>();
 			JSONArray array = null;
-			if (object != null) {
-				array = object.optJSONArray("statuses");
-			}
+			JSONObject object = new JSONObject(json);
+			array = object.optJSONArray("statuses");
 			if (array == null) {
-				Log.d(TAG, "Error parsing weiboitem json");
 				return null;
 			}
 			Log.v(TAG, "begin build Weiboitem ArrayList");
+
 			for (int i = 0; i < array.length(); i++) {
-				object = (JSONObject) array.get(i);
-				WeiboItem weiboItem = new WeiboItem();
-				weiboItem.setAttitudes_count(object.optInt("attitudes_count")); // fallback:0
-				weiboItem.setComments_count(object.optInt("comments_count")); // fallback:0
-				weiboItem.setCreated_at(object.optString("created_at")); // fallback:""
-				weiboItem.setFavorited(object.optBoolean("favorited")); // fallback:false
-				// weiboItem.setGeo(); // fallback:null TODO: 暂时不实现
-				weiboItem.setId(object.optLong("id")); // fallback:0
-				weiboItem.setIdstr(object.optString("idstr")); // fallback:""
-
-				JSONArray pic_urlsArray = object.optJSONArray("pic_urls"); // fallback:null
-				if (pic_urlsArray != null) {
-					ArrayList<String> pic_urls = new ArrayList<String>();
-					for (int j = 0; j < pic_urlsArray.length(); j++) {
-						pic_urls.add(((JSONObject) pic_urlsArray.get(j)).optString("thumbnail_pic"));
-					}
-					weiboItem.setPic_urls(pic_urls);
-
-					weiboItem.setThumbnail_pic(object.optString("thumbnail_pic"));
-					weiboItem.setBmiddle_pic(object.optString("bmiddle_pic"));
-					weiboItem.setOriginal_pic(object.optString("original_pic"));
-				}
-
-				weiboItem.setReposts_count(object.optInt("reposts_count"));
-				// weiboItem.setRetweeted_status(retweeted_status)
-				// TODO: 暂时不实现
-				weiboItem.setSource(object.optString("source"));
-				weiboItem.setText(object.optString("text"));
-				weiboItem.setTruncated(object.optBoolean("truncated"));
-				weiboItem.setUser(WeiboUser.parseUserFromJsonObject(object.optJSONObject("user")));
-				WeiboVisiblity visiblity = new WeiboVisiblity(object.optInt("visible"));
-				if (visiblity.getType() == WeiboVisiblity.SELECTED_GROUP) {
-					visiblity.setList_id(object.optInt("list_id"));
-				}
-				weiboItem.setVisible(visiblity);
-				//				Log.v(TAG, weiboItem.toString());
-				list.add(weiboItem);
+				list.add(parseSingleWeiboItem((JSONObject) array.get(i)));
 			}
-		} catch (Exception e) {
-			Log.w(TAG, "parsing weiboitem json error");
+			return list;
+		} catch (JSONException e) {
+			Log.d(TAG, "parsing weiboitem json error");
 			e.printStackTrace();
 		}
-		return list;
+		return null;
 	}
+
+	public static WeiboItem parseSingleWeiboItem(JSONObject object) {
+		if (object == null) {
+			return null;
+		}
+
+		WeiboItem weiboItem = new WeiboItem();
+
+		// common properties
+		weiboItem.setAttitudes_count(object.optInt("attitudes_count")); // fallback:0
+		weiboItem.setComments_count(object.optInt("comments_count")); // fallback:0
+		weiboItem.setCreated_at(object.optString("created_at")); // fallback:""
+		weiboItem.setFavorited(object.optBoolean("favorited")); // fallback:false
+		// weiboItem.setGeo(); // fallback:null TODO: 暂时不实现
+		weiboItem.setId(object.optLong("id")); // fallback:0
+		weiboItem.setIdstr(object.optString("idstr")); // fallback:""
+		weiboItem.setReposts_count(object.optInt("reposts_count"));
+		weiboItem.setSource(object.optString("source"));
+		weiboItem.setText(object.optString("text"));
+		weiboItem.setTruncated(object.optBoolean("truncated"));
+		weiboItem.setUser(WeiboUser.parseUserFromJsonObject(object.optJSONObject("user")));
+		WeiboVisiblity visiblity = new WeiboVisiblity(object.optInt("visible"));
+		if (visiblity.getType() == WeiboVisiblity.SELECTED_GROUP) {
+			visiblity.setList_id(object.optInt("list_id"));
+		}
+		weiboItem.setVisible(visiblity);
+
+		// Picture urls
+		JSONArray pic_urlsArray = object.optJSONArray("pic_urls"); // fallback:null
+		if (pic_urlsArray != null) {
+			ArrayList<String> pic_urls = new ArrayList<String>();
+			try {
+				for (int j = 0; j < pic_urlsArray.length(); j++) {
+					pic_urls.add(((JSONObject) pic_urlsArray.get(j)).optString("thumbnail_pic"));
+				}
+			} catch (JSONException e) {
+				if (pic_urls.size() == 0) {
+					pic_urls = null;
+				}
+				e.printStackTrace();
+			}
+			weiboItem.setPic_urls(pic_urls);
+		}
+		weiboItem.setThumbnail_pic(object.optString("thumbnail_pic"));
+		weiboItem.setBmiddle_pic(object.optString("bmiddle_pic"));
+		weiboItem.setOriginal_pic(object.optString("original_pic"));
+
+		// Original weibo, may be null
+		weiboItem.setRetweeted_status(parseSingleWeiboItem(object.optJSONObject("retweeted_status")));
+
+		//				Log.v(TAG, weiboItem.toString());
+		return weiboItem;
+	}
+
 }

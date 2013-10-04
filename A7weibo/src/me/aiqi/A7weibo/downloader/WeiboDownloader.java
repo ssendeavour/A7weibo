@@ -6,6 +6,7 @@ import java.util.Map;
 
 import me.aiqi.A7weibo.MyApplication;
 import me.aiqi.A7weibo.entity.AccessToken;
+import me.aiqi.A7weibo.entity.WeiboError;
 import me.aiqi.A7weibo.entity.WeiboItem;
 import me.aiqi.A7weibo.entity.WeiboUser;
 import me.aiqi.A7weibo.entity.WeiboVisiblity;
@@ -26,6 +27,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.text.TextUtils;
 import android.util.Log;
+import android.widget.Toast;
 
 public class WeiboDownloader extends AsyncTask<WeiboDownloader.Params, Void, ArrayList<WeiboItem>> {
 
@@ -153,7 +155,24 @@ public class WeiboDownloader extends AsyncTask<WeiboDownloader.Params, Void, Arr
 			HttpResponse response = SslClient.getSslClient(new DefaultHttpClient()).execute(httpGet);
 			int statusCode = response.getStatusLine().getStatusCode();
 			if (statusCode == HttpStatus.SC_OK) {
-				return WeiboItem.parseJson(EntityUtils.toString(response.getEntity()));
+				String json = EntityUtils.toString(response.getEntity());
+				ArrayList<WeiboItem> weiboItems = WeiboItem.parseJson(json);
+				if (weiboItems == null) {
+					// try parse json as an error 
+					WeiboError error = WeiboError.parseError(json);
+					if (error != null && error.getError_code() != 0) {
+						final String errorString = "Error code:" + error.getError_code() + ", " + error.getError();
+						Toast.makeText(mContext, errorString, Toast.LENGTH_SHORT).show();
+						Log.v(TAG, error.toString());
+					} else {
+						Toast.makeText(mContext, "未知错误", Toast.LENGTH_SHORT).show();
+						Log.d(TAG, "未知错误");
+						Log.d(TAG, json);
+					}
+					return null;
+				} else {
+					return weiboItems;
+				}
 			} else {
 				Log.i(TAG, "Failed download weibo items:" + url + ", status code: " + statusCode);
 			}

@@ -22,7 +22,6 @@
         android:id="@+id/fl_additional_info"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="12dp"
         android:visibility="gone" >
 
         <!-- original weibo info -->
@@ -32,6 +31,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
+            android:padding="12dp"
             android:visibility="gone" >
 
             <TextView
@@ -51,9 +51,11 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:layout_margin="6dp"
+                android:layout_margin="16dp"
                 android:visibility="gone" />
         </LinearLayout>
+
+        <!-- image of weibo (this weibo itself is an original weibo) -->
 
         <ImageView
             android:id="@+id/iv_image"

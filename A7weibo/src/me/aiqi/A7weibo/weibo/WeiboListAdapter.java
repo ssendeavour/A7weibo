@@ -160,26 +160,32 @@ public class WeiboListAdapter extends BaseAdapter {
 		}
 
 		// get weibo content
+
 		WeiboItem weiboItem = getItem(position);
 		if (weiboItem == null) {
 			// make weibo content green to indicate no weibo info
 			viewHolder.tv_weibo_content.setText(Html.fromHtml("<font color='#00FF00'> 好像出错了=_=<br />没有微博信息</font>"));
+			viewHolder.fl_additional_info.setVisibility(View.GONE);
 			return convertView;
 		}
 
-		// display user name and avatar
+		// set user name and avatar
+
 		WeiboUser user = weiboItem.getUser();
 		if (user != null) {
 			viewHolder.tv_nickname.setText(user.getScreen_name());
 			MyApplication.AVATAR_CACHE.get(user.getProfile_image_url(), mAvatarUrlList, viewHolder.iv_avatar);
 		} else {
 			// make username to green to indicate no user info found
+
 			viewHolder.tv_nickname.setText(Html.fromHtml("<font color='#00FF00'>好像出错了=_=<br />没有微博信息</font>"));
 			viewHolder.tv_weibo_content.setText("");
+			viewHolder.fl_additional_info.setVisibility(View.GONE);
 			return convertView;
 		}
 
 		// set weibo created_at time
+
 		String createTimeString = WbUtil.getTimeString(weiboItem.getCreated_at());
 		if (createTimeString == null) {
 			createTimeString = weiboItem.getCreated_at();
@@ -187,16 +193,50 @@ public class WeiboListAdapter extends BaseAdapter {
 		}
 		Log.v(TAG, createTimeString);
 
-		// load middle size image if have one
-		if (!TextUtils.isEmpty(weiboItem.getBmiddle_pic())) {
-			MyApplication.LARGE_IMAGE_CACHE.get(weiboItem.getThumbnail_pic(), viewHolder.iv_image);
+		// handle image, forwareded (retweeted) weibo
+
+		if (!TextUtils.isEmpty(weiboItem.getThumbnail_pic())) {
+			// weibo have image, load thumb image
+
 			viewHolder.fl_additional_info.setVisibility(View.VISIBLE);
 			viewHolder.iv_image.setVisibility(View.VISIBLE);
 			viewHolder.ll_orig_weibo.setVisibility(View.GONE);
-		} else {
-			viewHolder.fl_additional_info.setVisibility(View.GONE);
-			viewHolder.iv_image.setImageResource(0);
+			viewHolder.iv_orig_image.setImageBitmap(Consts.PLACE_HOLDER_IMAGE_1x1);
+
+			viewHolder.iv_image.setImageResource(R.drawable.image_loading);
+			MyApplication.LARGE_IMAGE_CACHE.get(weiboItem.getThumbnail_pic(), viewHolder.iv_image);
+
+		} else if (weiboItem.getRetweeted_status() != null) {
+			// load original weibo
+
 			viewHolder.iv_image.setVisibility(View.GONE);
+			viewHolder.iv_image.setImageBitmap(Consts.PLACE_HOLDER_IMAGE_1x1);
+			viewHolder.fl_additional_info.setVisibility(View.VISIBLE);
+			viewHolder.ll_orig_weibo.setVisibility(View.VISIBLE);
+
+			WeiboItem originalWeibo = weiboItem.getRetweeted_status();
+
+			viewHolder.tv_orig_weibo_content.setText(
+					WeiboRichText.getRichWeiboText(mContext,
+							"@" + originalWeibo.getUser().getName() + ":" + originalWeibo.getText()));
+
+			if (!TextUtils.isEmpty(originalWeibo.getThumbnail_pic())) {
+				// original weibo have image
+				viewHolder.iv_orig_image.setVisibility(View.VISIBLE);
+				viewHolder.iv_image.setImageResource(R.drawable.image_loading);
+				MyApplication.LARGE_IMAGE_CACHE.get(weiboItem.getThumbnail_pic(), viewHolder.iv_orig_image);
+			} else {
+				// original don't have image
+				viewHolder.fl_additional_info.setVisibility(View.GONE);
+				viewHolder.iv_orig_image.setImageBitmap(Consts.PLACE_HOLDER_IMAGE_1x1);
+				viewHolder.iv_image.setImageBitmap(Consts.PLACE_HOLDER_IMAGE_1x1);
+			}
+
+		} else {
+			// a plain weibo, not forwarded, no image
+			viewHolder.fl_additional_info.setVisibility(View.GONE);
+			viewHolder.iv_image.setImageBitmap(Consts.PLACE_HOLDER_IMAGE_1x1);
+			viewHolder.iv_orig_image.setImageBitmap(Consts.PLACE_HOLDER_IMAGE_1x1);
 		}
 
 		String sourceAndTimeHtmlString = new StringBuilder()
