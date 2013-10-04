@@ -19,6 +19,7 @@ import me.aiqi.A7weibo.entity.WeiboUser;
 import me.aiqi.A7weibo.network.NetworkCondition;
 import me.aiqi.A7weibo.util.WbUtil;
 import android.content.Context;
+import android.opengl.Visibility;
 import android.os.AsyncTask;
 import android.os.AsyncTask.Status;
 import android.text.Html;
@@ -31,6 +32,7 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -114,75 +116,62 @@ public class WeiboListAdapter extends BaseAdapter {
 	 * 
 	 */
 	private static class ViewHolder {
-		public final ImageView iv_avatar;
-		public final TextView tv_nickname;
-		public final TextView tv_source;
-		public final TextView tv_weibo_content;
-		public final Button btn_comment;
-		public final Button btn_forawrd;
-		public final Button btn_like;
+		public ImageView iv_avatar;
+		public TextView tv_nickname;
+		public TextView tv_source;
+		public TextView tv_weibo_content;
+		public Button btn_comment;
+		public Button btn_forawrd;
+		public Button btn_like;
 
-		public ViewHolder(ImageView iv_avatar, TextView tv_nickname, TextView tv_source, TextView tv_weibo_content,
-				Button btn_comment,
-				Button btn_forawrd, Button btn_like) {
-			super();
-			this.iv_avatar = iv_avatar;
-			this.tv_nickname = tv_nickname;
-			this.tv_source = tv_source;
-			this.tv_weibo_content = tv_weibo_content;
-			this.btn_comment = btn_comment;
-			this.btn_forawrd = btn_forawrd;
-			this.btn_like = btn_like;
-		}
+		// the following view may not always visible
+		public ImageView iv_image;
+		public ImageView iv_orig_image;
+		public TextView tv_orig_weibo_content;
+		public LinearLayout ll_orig_weibo;
 	}
 
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
-		ImageView iv_avatar;
-		TextView tv_nickname;
-		TextView tv_source;
-		TextView tv_weibo_content;
-		Button btn_comment;
-		Button btn_forawrd;
-		Button btn_like;
+
+		final ViewHolder viewHolder;
 
 		if (convertView == null) {
 			convertView = LayoutInflater.from(mContext).inflate(R.layout.frag_weibo_list_item, parent, false);
-			iv_avatar = (ImageView) convertView.findViewById(R.id.iv_avatar);
-			tv_nickname = (TextView) convertView.findViewById(R.id.tv_nickname);
-			tv_source = (TextView) convertView.findViewById(R.id.tv_time_and_source);
-			tv_weibo_content = (TextView) convertView.findViewById(R.id.tv_weibo_content);
-			btn_comment = (Button) convertView.findViewById(R.id.btn_comment);
-			btn_forawrd = (Button) convertView.findViewById(R.id.btn_forawrd);
-			btn_like = (Button) convertView.findViewById(R.id.btn_like);
-			convertView.setTag(new ViewHolder(iv_avatar, tv_nickname, tv_source, tv_weibo_content, btn_comment,
-					btn_forawrd, btn_like));
+			viewHolder = new ViewHolder();
+			viewHolder.iv_avatar = (ImageView) convertView.findViewById(R.id.iv_avatar);
+			viewHolder.tv_nickname = (TextView) convertView.findViewById(R.id.tv_nickname);
+			viewHolder.tv_source = (TextView) convertView.findViewById(R.id.tv_time_and_source);
+			viewHolder.tv_weibo_content = (TextView) convertView.findViewById(R.id.tv_weibo_content);
+			viewHolder.btn_comment = (Button) convertView.findViewById(R.id.btn_comment);
+			viewHolder.btn_forawrd = (Button) convertView.findViewById(R.id.btn_forawrd);
+			viewHolder.btn_like = (Button) convertView.findViewById(R.id.btn_like);
+
+			viewHolder.iv_image = (ImageView) convertView.findViewById(R.id.iv_image);
+			viewHolder.iv_orig_image = (ImageView) convertView.findViewById(R.id.iv_orig_image);
+			viewHolder.tv_orig_weibo_content = (TextView) convertView.findViewById(R.id.tv_orig_weibo_content);
+			viewHolder.ll_orig_weibo = (LinearLayout) convertView.findViewById(R.id.ll_orig_weibo);
+
+			convertView.setTag(viewHolder);
 		} else {
-			ViewHolder viewHolder = (ViewHolder) convertView.getTag();
-			iv_avatar = viewHolder.iv_avatar;
-			tv_nickname = viewHolder.tv_nickname;
-			tv_source = viewHolder.tv_source;
-			tv_weibo_content = viewHolder.tv_weibo_content;
-			btn_comment = viewHolder.btn_comment;
-			btn_forawrd = viewHolder.btn_forawrd;
-			btn_like = viewHolder.btn_like;
+			viewHolder = (ViewHolder) convertView.getTag();
 		}
 
 		WeiboItem weiboItem = getItem(position);
 		if (weiboItem == null) {
 			// make weibo content green to indicate no weibo info
-			tv_weibo_content.setText(Html.fromHtml("<font color='#00FF00'> 好像出错了=_=<br />没有微博信息</font>"));
+			viewHolder.tv_weibo_content.setText(Html.fromHtml("<font color='#00FF00'> 好像出错了=_=<br />没有微博信息</font>"));
 			return convertView;
 		}
 		WeiboUser user = weiboItem.getUser();
 		if (user != null) {
-			tv_nickname.setText(user.getScreen_name());
+			viewHolder.tv_nickname.setText(user.getScreen_name());
 			//			ImageLoader.getInstance().displayImage(user.getProfile_image_url(), iv_avatar);
-			MyApplication.AVATAR_CACHE.get(user.getProfile_image_url(), mAvatarUrlList, iv_avatar);
+			MyApplication.AVATAR_CACHE.get(user.getProfile_image_url(), mAvatarUrlList, viewHolder.iv_avatar);
 		} else {
 			// make username to green to indicate no user info found
-			tv_nickname.setText(Html.fromHtml("<font color='#00FF00'>好像出错了=_=<br />没有微博信息</font>"));
-			tv_weibo_content.setText("");
+			viewHolder.tv_nickname.setText(Html.fromHtml("<font color='#00FF00'>好像出错了=_=<br />没有微博信息</font>"));
+			viewHolder.tv_weibo_content.setText("");
 			return convertView;
 		}
 
@@ -190,9 +179,11 @@ public class WeiboListAdapter extends BaseAdapter {
 		Log.v(TAG, "originalImg: " + weiboItem.getOriginal_pic());
 		Log.v(TAG, "Thumb:" + weiboItem.getThumbnail_pic());
 		if (!TextUtils.isEmpty(weiboItem.getBmiddle_pic())) {
-//			MyApplication.LARGE_IMAGE_CACHE.get(weiboItem.getBmiddle_pic(), view);
+			MyApplication.LARGE_IMAGE_CACHE.get(weiboItem.getBmiddle_pic(), viewHolder.iv_image);
+			viewHolder.iv_image.setVisibility(View.VISIBLE);
+			viewHolder.ll_orig_weibo.setVisibility(View.GONE);
 		} else {
-			
+
 		}
 		Log.v(TAG, "medium:" + weiboItem.getPic_urls());
 		List<String> picUrls = weiboItem.getPic_urls();
@@ -213,15 +204,18 @@ public class WeiboListAdapter extends BaseAdapter {
 				.append(createTimeString)
 				.append("</font> 来自")
 				.append(weiboItem.getSource()).toString();
-		tv_source.setText(Html.fromHtml(sourceAndTimeHtmlString));
+		viewHolder.tv_source.setText(Html.fromHtml(sourceAndTimeHtmlString));
 
-		tv_weibo_content.setText(WeiboRichText.getRichWeiboText(mContext, weiboItem.getText()));
+		viewHolder.tv_weibo_content.setText(WeiboRichText.getRichWeiboText(mContext, weiboItem.getText()));
 
 		// with next statement, click on a link will not open it in browser
-		tv_weibo_content.setMovementMethod(LinkMovementMethod.getInstance());
-		btn_comment.setText(weiboItem.getComments_count() == 0 ? "评论" : String.valueOf(weiboItem.getComments_count()));
-		btn_forawrd.setText(weiboItem.getReposts_count() == 0 ? "转发" : String.valueOf(weiboItem.getReposts_count()));
-		btn_like.setText(weiboItem.getAttitudes_count() == 0 ? "赞" : String.valueOf(weiboItem.getAttitudes_count()));
+		viewHolder.tv_weibo_content.setMovementMethod(LinkMovementMethod.getInstance());
+		viewHolder.btn_comment.setText(weiboItem.getComments_count() == 0 ? "评论" : String.valueOf(weiboItem
+				.getComments_count()));
+		viewHolder.btn_forawrd.setText(weiboItem.getReposts_count() == 0 ? "转发" : String.valueOf(weiboItem
+				.getReposts_count()));
+		viewHolder.btn_like.setText(weiboItem.getAttitudes_count() == 0 ? "赞" : String.valueOf(weiboItem
+				.getAttitudes_count()));
 		return convertView;
 	}
 
