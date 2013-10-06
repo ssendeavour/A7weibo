@@ -7,26 +7,44 @@ import me.aiqi.A7weibo.R.id;
 import me.aiqi.A7weibo.R.layout;
 import me.aiqi.A7weibo.R.menu;
 import me.aiqi.A7weibo.entity.AccessToken;
+import me.aiqi.A7weibo.entity.WeiboItem;
 import uk.co.senab.actionbarpulltorefresh.extras.actionbarcompat.PullToRefreshAttacher;
+import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v4.app.ListFragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.View.OnClickListener;
+import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.assist.PauseOnScrollListener;
 
 public class WeiboListFragment extends ListFragment implements PullToRefreshAttacher.OnRefreshListener {
 
+	public static final int VIEW_WEIBO_DETAIL = 0x100;
+	public static final int COMMENT_WEIBO = 0x101;
+	public static final int REPOST_WEIBO = 0x102;
+	//	public static final int VIEW_WEIBO = 0x103;
+	//	public static final int VIEW_WEIBO = 0x104;
+	//	public static final int VIEW_WEIBO = 0x105;
+
 	private static final String TAG = WeiboListFragment.class.getSimpleName();
 	private WeiboListAdapter mWeiboListdapter;
 	private PullToRefreshAttacher mPullToRefreshAttacher;
+	private MyHandler mHandler;
 
 	// empty constructor is required as per Fragment docs
 	public WeiboListFragment() {
@@ -57,9 +75,10 @@ public class WeiboListFragment extends ListFragment implements PullToRefreshAtta
 		}
 
 		mPullToRefreshAttacher = ((WeiboListCallback) getActivity()).getPullToRefreshAttacher();
-		mPullToRefreshAttacher.addRefreshableView(getView().findViewById(android.R.id.list), this);
+		mPullToRefreshAttacher.addRefreshableView(getView(), this);
 
-		mWeiboListdapter = new WeiboListAdapter(getActivity());
+		mHandler = new MyHandler();
+		mWeiboListdapter = new WeiboListAdapter(getActivity(), mHandler);
 		setListAdapter(mWeiboListdapter);
 		refreshWeiboList();
 
@@ -86,6 +105,78 @@ public class WeiboListFragment extends ListFragment implements PullToRefreshAtta
 				currentTotalItemCount = totalItemCount;
 			}
 		});
+
+		getListView().setOnItemClickListener(new OnItemClickListener() {
+
+			@Override
+			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+				Log.v(TAG, ((WeiboItem) getListView().getItemAtPosition(position)).getUser().getName());
+				Log.v(TAG, "list item clicked");
+			}
+		});
+	}
+
+	class MyHandler extends Handler {
+		@Override
+		public void handleMessage(Message msg) {
+			int position;
+			WeiboItem weiboItem;
+			Intent intent;
+
+			switch (msg.what) {
+			case VIEW_WEIBO_DETAIL:
+
+				break;
+
+			case COMMENT_WEIBO:
+				position = (Integer) msg.obj;
+				weiboItem = (WeiboItem) getListAdapter().getItem(position);
+				intent = new Intent(getActivity(), WeiboCommentActivity.class);
+				intent.putExtra(WeiboCommentActivity.WEIBO_ID, weiboItem.getId());
+				startActivityForResult(intent, COMMENT_WEIBO);
+				break;
+
+			case REPOST_WEIBO:
+				position = (Integer) msg.obj;
+				weiboItem = (WeiboItem) getListAdapter().getItem(position);
+				intent = new Intent(getActivity(), WeiboRepostActivity.class);
+				intent.putExtra(WeiboRepostActivity.WEIBO_ID, weiboItem.getId());
+
+				WeiboItem item = weiboItem.getRetweeted_status();
+				if (item != null) {
+					intent.putExtra(WeiboRepostActivity.USER_NAME, item.getUser().getName());
+					intent.putExtra(WeiboRepostActivity.WEIBO_CONTENT, item.getText());
+					intent.putExtra(WeiboRepostActivity.OTHERS_COMMENT, weiboItem.getText());
+					intent.putExtra(WeiboRepostActivity.COMMENTERS_NAME, weiboItem.getUser().getName());
+				} else {
+					intent.putExtra(WeiboRepostActivity.USER_NAME, weiboItem.getUser().getName());
+					intent.putExtra(WeiboRepostActivity.WEIBO_CONTENT, weiboItem.getText());
+				}
+
+				startActivityForResult(intent, COMMENT_WEIBO);
+				break;
+			default:
+				break;
+			}
+
+			super.handleMessage(msg);
+		}
+	}
+
+	@Override
+	public void onActivityResult(int requestCode, int resultCode, Intent data) {
+		super.onActivityResult(requestCode, resultCode, data);
+
+		switch (requestCode) {
+		case COMMENT_WEIBO:
+			if (resultCode == Activity.RESULT_OK) {
+
+			}
+			break;
+
+		default:
+			break;
+		}
 	}
 
 	@Override
@@ -113,7 +204,7 @@ public class WeiboListFragment extends ListFragment implements PullToRefreshAtta
 	}
 
 	public void refreshWeiboList() {
-		final AccessToken accessToken = MyApplication.getContext().getAccessToken();
+		final AccessToken accessToken = MyApplication.getAccessToken();
 		if (accessToken != null && !accessToken.isExpired()) {
 			mWeiboListdapter = (WeiboListAdapter) getListAdapter();
 			if (mWeiboListdapter != null) {
@@ -128,7 +219,7 @@ public class WeiboListFragment extends ListFragment implements PullToRefreshAtta
 	}
 
 	public void loadMoreWeibo() {
-		final AccessToken accessToken = MyApplication.getContext().getAccessToken();
+		final AccessToken accessToken = MyApplication.getAccessToken();
 		if (accessToken != null && !accessToken.isExpired()) {
 			mWeiboListdapter = (WeiboListAdapter) getListAdapter();
 			if (mWeiboListdapter != null) {

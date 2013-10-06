@@ -82,7 +82,7 @@ public class MyApplication extends Application {
 		mApplicationContext = this;
 	}
 
-	public AccessToken getAccessToken() {
+	public static AccessToken getAccessToken() {
 		return accessToken;
 	}
 

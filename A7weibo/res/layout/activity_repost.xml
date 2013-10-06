@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+
+    <EditText
+        android:id="@+id/et_repost_weibo_content"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#EEE"
+        android:hint="说点什么吧"
+        android:minLines="3"
+        android:text=""
+        android:textAlignment="viewStart" />
+
+    <TextView
+        android:id="@+id/tv_repost_character_number"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:singleLine="true" />
+
+    <TextView
+        android:id="@+id/tv_repost_original_weibo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:background="#EEE"
+        android:text=""
+        android:textAlignment="viewStart" />
+
+    <CheckBox
+        android:id="@+id/cb_also_comment_to_current_weibo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:checked="false"
+        android:text="同时评论给当前微博" />
+
+    <CheckBox
+        android:id="@+id/cb_also_comment_to_original_weibo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:checked="false"
+        android:text="同时评论给原微博"
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal" >
+
+        <Button
+            android:id="@+id/btn_cancel_repost"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="left"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp"
+            android:text="取消" />
+
+        <Button
+            android:id="@+id/btn_send_repost"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="right"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp"
+            android:text="发送" />
+    </LinearLayout>
+
+</LinearLayout>

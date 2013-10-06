@@ -54,7 +54,7 @@ import com.weibo.sdk.android.WeiboException;
 
 @SuppressLint("HandlerLeak")
 public class MainActivity extends ActionBarActivity implements WeiboListCallback {
-	
+
 	public static final String TAG = MainActivity.class.getSimpleName();
 
 	public static final int GET_ACCESS_TOKEN_FROM_CODE_START = 0x100;
@@ -120,11 +120,12 @@ public class MainActivity extends ActionBarActivity implements WeiboListCallback
 					} else {
 						WeiboListAdapter adapter = (WeiboListAdapter) mWeiboFragment.getListAdapter();
 						if (adapter == null) {
-							Log.v(TAG, "got access token, but WeiboListAdapter is null, create one");
-							adapter = new WeiboListAdapter(MainActivity.this);
-							mWeiboFragment.setListAdapter(adapter);
+							Log.w(TAG, "got access token, but WeiboListAdapter is null");
+							//							adapter = new WeiboListAdapter(MainActivity.this);
+							//							mWeiboFragment.setListAdapter(adapter);
+						} else {
+							adapter.refresh(mAccessToken);
 						}
-						adapter.refresh(mAccessToken);
 					}
 					break;
 

@@ -1,0 +1,230 @@
+/**
+ * Project: A7weibo
+ * File:  me.aiqi.A7weibo.weibo.WeiboCommentActivity.java
+ * created at: Oct 6, 2013 11:27:36 AM
+ * @author starfish
+ */
+
+package me.aiqi.A7weibo.weibo;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import me.aiqi.A7weibo.MyApplication;
+import me.aiqi.A7weibo.R;
+import me.aiqi.A7weibo.entity.AccessToken;
+import me.aiqi.A7weibo.entity.Consts;
+import me.aiqi.A7weibo.entity.WeiboCommentResponse;
+import me.aiqi.A7weibo.network.NetworkCondition;
+
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
+
+import android.app.Activity;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
+import android.text.TextUtils;
+import android.util.Log;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.EditText;
+import android.widget.Toast;
+
+public class WeiboCommentActivity extends Activity {
+
+	private static final String TAG = WeiboCommentActivity.class.getSimpleName();
+
+	public static final int COMMENT_SUCCEED = 0x100;
+	public static final int COMMENT_FAILED_NETWORK = 0x101;
+	public static final int COMMENT_FAILED_NOT_CONNECTED = 0x102;
+	public static final int COMMENT_FAILED_EMPTY = 0x103;
+	public static final int COMMENT_FAILED_TOO_LONG = 0x104;
+	public static final int COMMENT_FAILED_EXPIRED = 0x105;
+
+	public static final String WEIBO_ID = "weibo_id";
+
+	private Button btn_cancel;
+	private Button btn_send;
+	private CheckBox cb_cc_to_me;
+	private EditText et_comment_content;
+	private boolean hasSend = false;
+	private long commentted_weibo_id; //id of weibo to be commented 
+	private MyHandler handler = new MyHandler();
+
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_write_comment);
+
+		btn_cancel = (Button) findViewById(R.id.btn_cancel_comment);
+		btn_send = (Button) findViewById(R.id.btn_send_comment);
+		cb_cc_to_me = (CheckBox) findViewById(R.id.cb_also_forward_to_my_weibo);
+		et_comment_content = (EditText) findViewById(R.id.et_weibo_comment_content);
+
+		commentted_weibo_id = getIntent().getLongExtra(WEIBO_ID, 0);
+
+		btn_cancel.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				cancel();
+			}
+		});
+
+		btn_send.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				send();
+			}
+		});
+	}
+
+	class MyHandler extends Handler {
+
+		@Override
+		public void handleMessage(Message msg) {
+			switch (msg.what) {
+			case COMMENT_FAILED_NETWORK:
+				Toast.makeText(WeiboCommentActivity.this, (String) msg.obj, Toast.LENGTH_SHORT).show();
+				break;
+
+			case COMMENT_FAILED_EMPTY:
+				Toast.makeText(WeiboCommentActivity.this, "评论内容不能为空", Toast.LENGTH_SHORT).show();
+				break;
+
+			case COMMENT_FAILED_TOO_LONG:
+				Toast.makeText(WeiboCommentActivity.this, (String) msg.obj, Toast.LENGTH_SHORT).show();
+				break;
+
+			case COMMENT_FAILED_EXPIRED:
+				Toast.makeText(WeiboCommentActivity.this, "授权已过期，请重新授权", Toast.LENGTH_SHORT).show();
+				break;
+
+			case COMMENT_SUCCEED:
+				Toast.makeText(WeiboCommentActivity.this, "评论成功", Toast.LENGTH_SHORT).show();
+				break;
+
+			case COMMENT_FAILED_NOT_CONNECTED:
+				Toast.makeText(WeiboCommentActivity.this, "未连接网络", Toast.LENGTH_SHORT).show();
+				break;
+			}
+			super.handleMessage(msg);
+		}
+	}
+
+	private void cancel() {
+		finish();
+	}
+
+	@Override
+	protected void onStop() {
+		super.onStop();
+		if (!hasSend && !TextUtils.isEmpty(et_comment_content.getText().toString().trim())) {
+			saveDraft();
+		}
+	}
+
+	private void saveDraft() {
+		Log.v(TAG, "save drafts not implemented");
+	}
+
+	private void send() {
+		new Thread() {
+			@Override
+			public void run() {
+				super.run();
+
+				if (!NetworkCondition.isOnline()) {
+					Message msg = Message.obtain();
+					msg.what = COMMENT_FAILED_NOT_CONNECTED;
+					handler.sendMessage(msg);
+					return;
+				}
+
+				String content = et_comment_content.getText().toString().trim();
+				if (TextUtils.isEmpty(content)) {
+					Message msg = Message.obtain();
+					msg.what = COMMENT_FAILED_EMPTY;
+					handler.sendMessage(msg);
+					return;
+				} else if (content.length() > Consts.Weibo.WEIBO_CONTENT_LENGTH) {
+					Message msg = Message.obtain();
+					msg.what = COMMENT_FAILED_TOO_LONG;
+					msg.obj = "评论过长，超了" + (content.length() - Consts.Weibo.WEIBO_CONTENT_LENGTH) + "个字";
+					handler.sendMessage(msg);
+					return;
+				}
+
+				AccessToken accessToken = MyApplication.getAccessToken();
+				if (accessToken.isExpired()) {
+					Message msg = Message.obtain();
+					msg.what = COMMENT_FAILED_EXPIRED;
+					handler.sendMessage(msg);
+					return;
+				}
+				// Create a new HttpClient and Post Header
+				HttpClient httpclient = new DefaultHttpClient();
+				HttpPost httppost = new HttpPost("https://api.weibo.com/2/comments/create.json");
+
+				try {
+					// Add your data
+					List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
+					nameValuePairs.add(new BasicNameValuePair("comment", content));
+					nameValuePairs.add(new BasicNameValuePair("access_token", accessToken.getAccessTokenString()));
+					nameValuePairs.add(new BasicNameValuePair("id", "" + commentted_weibo_id));
+					httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+
+					Log.v(TAG, httppost.getRequestLine().getUri());
+
+					// Execute HTTP Post Request	
+					HttpResponse response = httpclient.execute(httppost);
+					int statusCode = response.getStatusLine().getStatusCode();
+					if (statusCode == HttpStatus.SC_OK) {
+						String json = EntityUtils.toString(response.getEntity());
+						WeiboCommentResponse commentResponse = WeiboCommentResponse.parseJson(json);
+						if (commentResponse != null
+								&& commentResponse.getCommentedWeibo().getId() == commentted_weibo_id) {
+							Log.v(TAG, "comment succeed");
+							Message msg = Message.obtain();
+							msg.what = COMMENT_SUCCEED;
+							handler.sendMessage(msg);
+						} else {
+							Log.v(TAG, "comment failed");
+							Message msg = Message.obtain();
+							msg.what = COMMENT_FAILED_NETWORK;
+							msg.obj = "评论失败";
+							handler.sendMessage(msg);
+							return;
+						}
+					} else {
+						String msgString = "发送评论失败, http_code:" + statusCode;
+						Message msg = Message.obtain();
+						msg.what = COMMENT_FAILED_NETWORK;
+						msg.obj = msgString;
+						handler.sendMessage(msg);
+						Log.v(TAG, msgString);
+						return;
+					}
+				} catch (IOException e) {
+					Message msg = Message.obtain();
+					msg.what = COMMENT_FAILED_NETWORK;
+					msg.obj = "网络异常,评论失败";
+					handler.sendMessage(msg);
+					return;
+				}
+			}
+		}.start();
+	}
+}

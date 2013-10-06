@@ -5,7 +5,7 @@
  * @author starfish
  */
 
-package me.aiqi.A7weibo.weibo;
+package me.aiqi.A7weibo.util;
 
 import android.text.style.ClickableSpan;
 import android.view.View;

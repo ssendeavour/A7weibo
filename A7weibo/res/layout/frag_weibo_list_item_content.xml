@@ -15,6 +15,7 @@
         android:paddingRight="8dp"
         android:paddingTop="8dp"
         android:text=""
+        android:textAlignment="viewStart"
         android:textColor="#000"
         android:textSize="@dimen/weibo_text_size" />
 
@@ -52,6 +53,7 @@
                 android:paddingRight="8dp"
                 android:paddingTop="2dp"
                 android:text=""
+                android:textAlignment="viewStart"
                 android:textColor="#000"
                 android:textSize="@dimen/weibo_text_size" />
 

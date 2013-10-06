@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
@@ -12,9 +13,9 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
 
 public class PostDataExample {
-	
 
 	public void postData() {
 		// Create a new HttpClient and Post Header
@@ -30,9 +31,14 @@ public class PostDataExample {
 
 			// Execute HTTP Post Request
 			HttpResponse response = httpclient.execute(httppost);
-
+			
+			int statusCode = response.getStatusLine().getStatusCode();
+			if (statusCode == HttpStatus.SC_OK) {
+				String json = EntityUtils.toString(response.getEntity());
+			}
 		} catch (ClientProtocolException e) {
 		} catch (IOException e) {
 		}
+
 	}
 }

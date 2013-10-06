@@ -139,7 +139,7 @@ public class WeiboDownloader extends AsyncTask<WeiboDownloader.Params, Void, Arr
 
 	@Override
 	protected ArrayList<WeiboItem> doInBackground(Params... params) {
-		AccessToken accessToken = ((MyApplication) mContext.getApplicationContext()).getAccessToken();
+		AccessToken accessToken = MyApplication.getAccessToken();
 		if (accessToken == null || accessToken.isExpired()) {
 			return null;
 		}

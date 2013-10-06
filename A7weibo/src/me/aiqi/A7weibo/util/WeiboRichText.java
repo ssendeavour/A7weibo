@@ -5,7 +5,7 @@
  * @author starfish
  */
 
-package me.aiqi.A7weibo.weibo;
+package me.aiqi.A7weibo.util;
 
 import java.util.HashMap;
 import java.util.regex.Matcher;
@@ -16,11 +16,8 @@ import android.content.Context;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
-import android.text.style.ClickableSpan;
 import android.text.style.ImageSpan;
 import android.util.Log;
-import android.util.Patterns;
-import android.view.View;
 
 public class WeiboRichText {
 	public static final String TAG = WeiboRichText.class.getSimpleName();
@@ -31,7 +28,7 @@ public class WeiboRichText {
 	// all punctuation are not allowed in user name except underscore and hyphen, \\p{Punct} only cover ASCII punctuation. Space and end of line are also a terminator of user name
 	public static final Pattern sAtPeoplePattern = Pattern.compile("(@.*?)((?=[ :，。：？；（）])|$|(?=[\\p{Punct}&&[^_-]]))");
 	public static final Pattern sUrlPattern = Pattern
-			.compile("(https?\\:\\/\\/[-a-zA-Z0-9_]+?\\.[-a-zA-Z0-9\\?\\:_\\%\\=\\/\\.#\\+\\,\\$~]+)");
+			.compile("(https?\\:\\/\\/[-a-zA-Z0-9_]+?\\.[-a-zA-Z0-9\\?\\:_\\%\\=\\/\\.#\\+\\,\\$~\\(\\)]+)");
 	static {
 		sDefaultEmoticonMap = new HashMap<String, Integer>();
 		sDefaultEmoticonMap.put("草泥马", R.drawable.emot_default_shenshou_org);
@@ -130,7 +127,6 @@ public class WeiboRichText {
 	public static Spannable getRichWeiboText(Context context, String weiboText) {
 		SpannableStringBuilder builder = new SpannableStringBuilder(weiboText);
 		int start = 0;
-		Log.v(TAG, "Length: " + weiboText.length());
 
 		Matcher emoticonMatcher = sEmoticonPattern.matcher(weiboText);
 		while (emoticonMatcher.find()) {
@@ -181,7 +177,6 @@ public class WeiboRichText {
 			WeiboUrlSpan urlSpan = new WeiboUrlSpan(url);
 			start = weiboText.indexOf(url, start);
 			builder.setSpan(urlSpan, start, start + url.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-			//			Log.v(TAG, builder.subSequence(start, start + username.length()).toString());
 			start += url.length();
 		}
 

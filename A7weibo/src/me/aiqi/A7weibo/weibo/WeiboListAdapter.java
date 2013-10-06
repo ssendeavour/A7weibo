@@ -1,15 +1,11 @@
 package me.aiqi.A7weibo.weibo;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 
 import me.aiqi.A7weibo.MainActivity;
 import me.aiqi.A7weibo.MyApplication;
 import me.aiqi.A7weibo.R;
-import me.aiqi.A7weibo.R.id;
-import me.aiqi.A7weibo.R.layout;
-import me.aiqi.A7weibo.R.string;
 import me.aiqi.A7weibo.downloader.WeiboDownloader;
 import me.aiqi.A7weibo.downloader.WeiboDownloader.Params;
 import me.aiqi.A7weibo.entity.AccessToken;
@@ -18,9 +14,11 @@ import me.aiqi.A7weibo.entity.WeiboItem;
 import me.aiqi.A7weibo.entity.WeiboUser;
 import me.aiqi.A7weibo.network.NetworkCondition;
 import me.aiqi.A7weibo.util.WbUtil;
+import me.aiqi.A7weibo.util.WeiboRichText;
 import android.content.Context;
-import android.opengl.Visibility;
 import android.os.AsyncTask;
+import android.os.Handler;
+import android.os.Message;
 import android.os.AsyncTask.Status;
 import android.text.Html;
 import android.text.TextUtils;
@@ -28,6 +26,7 @@ import android.text.method.LinkMovementMethod;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Button;
@@ -45,18 +44,86 @@ public class WeiboListAdapter extends BaseAdapter {
 	/** insert new weibo items to the head of the inner List */
 	public static final int UPDATE_MODE_REFRESH = 1;
 
+	/** click listener for btn_comment, btn_like, btn_forward, etc */
+	private final OnClickListener mClickListener;
+
 	private Context mContext;
 	private List<WeiboItem> mWeiboItems;
 	private List<String> mAvatarUrlList;
 	private List<WeiboItem> mWeiboItemsOld;
+	private Handler mHandler;
 	private AsyncTask<Params, Void, ArrayList<WeiboItem>> mTask; // weiboitems downloader task
 
-	public WeiboListAdapter(Context context) {
+	public WeiboListAdapter(Context context, Handler handler) {
 		mContext = context;
+		mHandler = handler;
+
 		mWeiboItems = readWeiboItemsFromCache();
 		updateAvatarUrl(); // init mAvatarUrlList
 		mWeiboItemsOld = null;
 		mTask = null;
+
+		mClickListener = new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				Message msg = Message.obtain();
+
+				switch (v.getId()) {
+				case R.id.btn_like:
+					Log.v(TAG, "like");
+					break;
+
+				case R.id.btn_comment:
+					Log.v(TAG, "comment");
+					msg.what = WeiboListFragment.COMMENT_WEIBO;
+					msg.obj = v.getTag(); //position in the listview of the weibo to be commented
+					mHandler.sendMessage(msg);
+					break;
+
+				case R.id.btn_forawrd:
+					Log.v(TAG, "forawrd");
+					msg.what = WeiboListFragment.REPOST_WEIBO;
+					msg.obj = v.getTag(); //position in the listview of the weibo to be commented
+					mHandler.sendMessage(msg);
+					break;
+
+				case R.id.tv_weibo_content:
+					int position = (Integer) v.getTag();
+					Log.v(TAG, "tv_weibo_content");
+					Log.v(TAG, "" + position);
+					Log.v(TAG, getItem(position).getText());
+					break;
+
+				case R.id.tv_orig_weibo_content:
+					Log.v(TAG, "tv_orig_weibo_content");
+					break;
+
+				case R.id.iv_image:
+					Log.v(TAG, "iv_image");
+					break;
+
+				case R.id.iv_orig_image:
+					Log.v(TAG, "iv_orig_image");
+					break;
+
+				case R.id.iv_avatar:
+					Log.v(TAG, "iv_avatar");
+					// fall through to nickname
+				case R.id.tv_nickname:
+					Log.v(TAG, "tv_nickname");
+					break;
+
+				case View.NO_ID:
+					Log.v(TAG, "no id");
+					break;
+
+				default:
+					Log.v(TAG, v.getId() + "");
+					break;
+				}
+			}
+		};
 	}
 
 	/**
@@ -142,26 +209,49 @@ public class WeiboListAdapter extends BaseAdapter {
 			convertView = LayoutInflater.from(mContext).inflate(R.layout.frag_weibo_list_item, parent, false);
 			viewHolder = new ViewHolder();
 			viewHolder.iv_avatar = (ImageView) convertView.findViewById(R.id.iv_avatar);
+			viewHolder.iv_avatar.setOnClickListener(mClickListener);
 			viewHolder.tv_nickname = (TextView) convertView.findViewById(R.id.tv_nickname);
+			viewHolder.tv_nickname.setOnClickListener(mClickListener);
 			viewHolder.tv_source = (TextView) convertView.findViewById(R.id.tv_time_and_source);
 			viewHolder.tv_weibo_content = (TextView) convertView.findViewById(R.id.tv_weibo_content);
+			viewHolder.tv_weibo_content.setClickable(true);
+			viewHolder.tv_weibo_content.setOnClickListener(mClickListener);
 			// important, otherwise, links are not clickable
 			viewHolder.tv_weibo_content.setMovementMethod(LinkMovementMethod.getInstance());
+
 			viewHolder.btn_comment = (Button) convertView.findViewById(R.id.btn_comment);
+			viewHolder.btn_comment.setOnClickListener(mClickListener);
 			viewHolder.btn_forawrd = (Button) convertView.findViewById(R.id.btn_forawrd);
+			viewHolder.btn_forawrd.setOnClickListener(mClickListener);
 			viewHolder.btn_like = (Button) convertView.findViewById(R.id.btn_like);
+			viewHolder.btn_like.setOnClickListener(mClickListener);
 
 			viewHolder.iv_image = (ImageView) convertView.findViewById(R.id.iv_image);
+			viewHolder.iv_image.setOnClickListener(mClickListener);
 			viewHolder.iv_orig_image = (ImageView) convertView.findViewById(R.id.iv_orig_image);
+			viewHolder.iv_orig_image.setOnClickListener(mClickListener);
 			viewHolder.tv_orig_weibo_content = (TextView) convertView.findViewById(R.id.tv_orig_weibo_content);
+			viewHolder.tv_orig_weibo_content.setOnClickListener(mClickListener);
 			// important, otherwise, links are not clickable
 			viewHolder.tv_orig_weibo_content.setMovementMethod(LinkMovementMethod.getInstance());
+
 			viewHolder.ll_orig_weibo = (LinearLayout) convertView.findViewById(R.id.ll_orig_weibo);
 			viewHolder.fl_additional_info = (FrameLayout) convertView.findViewById(R.id.fl_additional_info);
+
 			convertView.setTag(viewHolder);
 		} else {
 			viewHolder = (ViewHolder) convertView.getTag();
 		}
+
+		viewHolder.tv_weibo_content.setTag(position);
+		viewHolder.tv_nickname.setTag(position);
+		viewHolder.tv_orig_weibo_content.setTag(position);
+		viewHolder.iv_avatar.setTag(position);
+		viewHolder.iv_image.setTag(position);
+		viewHolder.iv_orig_image.setTag(position);
+		viewHolder.btn_comment.setTag(position);
+		viewHolder.btn_forawrd.setTag(position);
+		viewHolder.btn_like.setTag(position);
 
 		// get weibo content
 
@@ -173,7 +263,6 @@ public class WeiboListAdapter extends BaseAdapter {
 			viewHolder.fl_additional_info.setVisibility(View.GONE);
 			return convertView;
 		}
-		Log.v(TAG, weiboItem.toString());
 
 		// set user name and avatar
 

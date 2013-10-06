@@ -28,6 +28,7 @@ public class WeiboItem {
 	private String text = "";// 微博信息内容
 	private String source = ""; // 微博来源
 	private boolean favorited = false; // 是否已收藏，true：是，false：否
+	private boolean liked = false; // 新浪返回的json中没有此字段，只在客户端本地暂存
 	private boolean truncated = false; // 是否被截断，true：是，false：否
 	private String in_reply_to_status_id = ""; // （暂未支持）回复ID
 	private String in_reply_to_user_id = ""; // （暂未支持）回复人UID
@@ -115,6 +116,14 @@ public class WeiboItem {
 
 	public boolean isFavorited() {
 		return favorited;
+	}
+	
+	public boolean isLiked() {
+		return liked;
+	}
+
+	public void setLiked(boolean liked) {
+		this.liked = liked;
 	}
 
 	public void setFavorited(boolean favorited) {

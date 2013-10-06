@@ -7,7 +7,7 @@ import android.graphics.BitmapFactory;
 
 public class Consts {
 
-	public static class ImageLoader {
+	public static final class ImageLoader {
 		public static final int ANIM_AVATAR_FADE_IN_MILLIS = 1000;
 
 		public static final boolean PAUSE_ON_SCROLL = false;
@@ -20,11 +20,15 @@ public class Consts {
 
 	}
 
-	public static class WeiboDownloader {
+	public static final class WeiboDownloader {
 		public static final int COUNT_PER_PAGE = 20; // weibo items to return per request, max:100
 	}
 
 	/** set this small image to release memory if ImageView */
 	public static final Bitmap PLACE_HOLDER_IMAGE_1x1 = BitmapFactory.decodeResource(MyApplication.getContext()
 			.getResources(), R.drawable.place_holder_1x1);
+	
+	public static final class Weibo{
+		public static final int WEIBO_CONTENT_LENGTH = 140;		// 140 characters at most one weibo
+	}
 }
