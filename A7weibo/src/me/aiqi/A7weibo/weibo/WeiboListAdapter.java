@@ -1,6 +1,9 @@
 package me.aiqi.A7weibo.weibo;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import me.aiqi.A7weibo.MainActivity;
@@ -16,6 +19,9 @@ import me.aiqi.A7weibo.network.NetworkCondition;
 import me.aiqi.A7weibo.util.WbUtil;
 import me.aiqi.A7weibo.util.WeiboRichText;
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.AsyncTask.Status;
 import android.os.Handler;
@@ -241,6 +247,17 @@ public class WeiboListAdapter extends BaseAdapter {
 			convertView.setTag(viewHolder);
 		} else {
 			viewHolder = (ViewHolder) convertView.getTag();
+
+			for (ImageView imageView : Arrays.asList(viewHolder.iv_image, viewHolder.iv_orig_image)) {
+				Drawable drawable = imageView.getDrawable();
+				if (drawable != null && drawable instanceof BitmapDrawable) {
+					Bitmap bitmap = ((BitmapDrawable) drawable).getBitmap();
+					if (bitmap != null) {
+						bitmap.recycle();
+						Log.v(TAG, "recycle bitmap");
+					}
+				}
+			}
 		}
 
 		viewHolder.tv_weibo_content.setTag(position);
@@ -296,7 +313,7 @@ public class WeiboListAdapter extends BaseAdapter {
 			viewHolder.fl_additional_info.setVisibility(View.VISIBLE);
 			viewHolder.iv_image.setVisibility(View.VISIBLE);
 			viewHolder.ll_orig_weibo.setVisibility(View.GONE);
-			viewHolder.iv_orig_image.setImageBitmap(Consts.PLACE_HOLDER_IMAGE_1x1);
+			//			viewHolder.iv_orig_image.setImageBitmap(Consts.PLACE_HOLDER_IMAGE_1x1);
 
 			viewHolder.iv_image.setImageResource(R.drawable.image_loading);
 			MyApplication.LARGE_IMAGE_CACHE.get(weiboItem.getThumbnail_pic(), viewHolder.iv_image);
@@ -307,7 +324,7 @@ public class WeiboListAdapter extends BaseAdapter {
 			viewHolder.fl_additional_info.setVisibility(View.VISIBLE);
 			viewHolder.ll_orig_weibo.setVisibility(View.VISIBLE);
 			viewHolder.iv_image.setVisibility(View.GONE);
-			viewHolder.iv_image.setImageBitmap(Consts.PLACE_HOLDER_IMAGE_1x1);
+			//			viewHolder.iv_image.setImageBitmap(Consts.PLACE_HOLDER_IMAGE_1x1);
 
 			WeiboItem originalWeibo = weiboItem.getRetweeted_status();
 
@@ -324,14 +341,14 @@ public class WeiboListAdapter extends BaseAdapter {
 			} else {
 				// original don't have image
 				viewHolder.iv_orig_image.setVisibility(View.GONE);
-				viewHolder.iv_orig_image.setImageBitmap(Consts.PLACE_HOLDER_IMAGE_1x1);
+				//				viewHolder.iv_orig_image.setImageBitmap(Consts.PLACE_HOLDER_IMAGE_1x1);
 			}
 
 		} else {
 			// a plain weibo, not forwarded, no image
 			viewHolder.fl_additional_info.setVisibility(View.GONE);
-			viewHolder.iv_image.setImageBitmap(Consts.PLACE_HOLDER_IMAGE_1x1);
-			viewHolder.iv_orig_image.setImageBitmap(Consts.PLACE_HOLDER_IMAGE_1x1);
+			//			viewHolder.iv_image.setImageBitmap(Consts.PLACE_HOLDER_IMAGE_1x1);
+			//			viewHolder.iv_orig_image.setImageBitmap(Consts.PLACE_HOLDER_IMAGE_1x1);
 		}
 
 		String sourceAndTimeHtmlString = new StringBuilder()
