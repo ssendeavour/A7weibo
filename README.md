@@ -12,9 +12,14 @@ Sina weibo Android client for Android 2.3 and up. (experimental)
 
 已实现功能：
 
-- 浏览微博（不完善）
-	+ 加载更多
-	+ 下拉刷新
+- 浏览微博
+	+ 自动加载更多
+	+ 显示表情
+	+ 显示话题（点击无效）
+	+ 显示链接（解决中文在与链接连接时被当成链接一部分的问题）
+	+ 显示微博的第一张缩略图（如果有图）
+- 评论
+- 转发
 
 
 ### currently used open source library
