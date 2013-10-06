@@ -2,18 +2,16 @@ package me.aiqi.A7weibo.entity;
 
 import org.json.JSONObject;
 
-import android.util.Log;
-
 /**
  * 代表一个用户信息，详见：http://open.weibo.com/wiki/%E5%B8%B8%E8%A7%81%E8%BF%94%E5%9B%
- * 9E%E5%AF%B9%E8%B1%A1%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84#.E7.94.A8.E6.88.B7.EF.BC.88user.EF.BC
- * . 8 9
+ * 9E%E5%AF%B9%E8%B1%A1%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84#.E7.94.A8.E6.88.B7.EF.BC.88user.EF.B
+ * C . 8 9
  * 
  * @author starfish
  * 
  */
 public class WeiboUser {
-	private static final String TAG = "WeiboUser";
+	private static final String TAG = WeiboUser.class.getSimpleName();
 	private long id = 0;// 用户UID
 	private String idstr = "";// 字符串型的用户UID
 	private String screen_name = "";// 用户昵称
@@ -301,13 +299,20 @@ public class WeiboUser {
 
 	@Override
 	public String toString() {
-		return "WeiboUser [id=" + id + ", idstr=" + idstr + ", screen_name=" + screen_name + ", name=" + name + ", province=" + province + ", city="
-				+ city + ", location=" + location + ", description=" + description + ", url=" + url + ", profile_image_url=" + profile_image_url
-				+ ", profile_url=" + profile_url + ", domain=" + domain + ", weihao=" + weihao + ", gender=" + gender + ", followers_count="
-				+ followers_count + ", friends_count=" + friends_count + ", statuses_count=" + statuses_count + ", favourites_count="
-				+ favourites_count + ", created_at=" + created_at + ", allow_all_act_msg=" + allow_all_act_msg + ", geo_enabled=" + geo_enabled
-				+ ", verified=" + verified + ", remark=" + remark + ", allow_all_comment=" + allow_all_comment + ", avatar_large=" + avatar_large
-				+ ", verified_reason=" + verified_reason + ", follow_me=" + follow_me + ", online_status=" + online_status + ", bi_followers_count="
+		return "WeiboUser [id=" + id + ", idstr=" + idstr + ", screen_name=" + screen_name + ", name=" + name
+				+ ", province=" + province + ", city="
+				+ city + ", location=" + location + ", description=" + description + ", url=" + url
+				+ ", profile_image_url=" + profile_image_url
+				+ ", profile_url=" + profile_url + ", domain=" + domain + ", weihao=" + weihao + ", gender=" + gender
+				+ ", followers_count="
+				+ followers_count + ", friends_count=" + friends_count + ", statuses_count=" + statuses_count
+				+ ", favourites_count="
+				+ favourites_count + ", created_at=" + created_at + ", allow_all_act_msg=" + allow_all_act_msg
+				+ ", geo_enabled=" + geo_enabled
+				+ ", verified=" + verified + ", remark=" + remark + ", allow_all_comment=" + allow_all_comment
+				+ ", avatar_large=" + avatar_large
+				+ ", verified_reason=" + verified_reason + ", follow_me=" + follow_me + ", online_status="
+				+ online_status + ", bi_followers_count="
 				+ bi_followers_count + ", lang=" + lang + "]";
 	}
 
@@ -346,7 +351,7 @@ public class WeiboUser {
 		user.setVerified(jsonObject.optBoolean("verified"));
 		user.setVerified_reason(jsonObject.optString("verified_reason"));
 		user.setWeihao(jsonObject.optString("weihao"));
-//		Log.d(TAG, user.toString());
+		//		Log.d(TAG, user.toString());
 		return user;
 	}
 }

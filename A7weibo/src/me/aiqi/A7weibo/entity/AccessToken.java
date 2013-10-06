@@ -4,8 +4,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-import android.util.Log;
-
 public class AccessToken {
 	public static String ACCESS_TOKEN = "access_token";
 	public static String EXPIRES_IN = "expires_in";

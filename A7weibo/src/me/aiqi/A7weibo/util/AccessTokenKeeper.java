@@ -1,14 +1,9 @@
 package me.aiqi.A7weibo.util;
 
 import me.aiqi.A7weibo.entity.AccessToken;
-import me.aiqi.A7weibo.entity.AppRegInfo;
-
-import com.weibo.sdk.android.Oauth2AccessToken;
-
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
-import android.util.Log;
 
 /**
  * 该类用于保存Oauth2AccessToken到sharepreference，并提供读取功能

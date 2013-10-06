@@ -7,10 +7,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.R.string;
 import android.text.TextUtils;
 import android.util.Log;
-import android.widget.Toast;
 
 /**
  * 代表一条微博：见：http://open.weibo.com/wiki/2/statuses/friends_timeline

@@ -6,10 +6,6 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
-import android.text.format.DateFormat;
-import android.text.format.DateUtils;
-import android.util.Log;
-
 import com.weibo.sdk.android.Oauth2AccessToken;
 
 /**
@@ -20,7 +16,7 @@ import com.weibo.sdk.android.Oauth2AccessToken;
  */
 public class WbUtil {
 
-	private static final String TAG = "WbUtil";
+	private static final String TAG = WbUtil.class.getSimpleName();
 
 	/**
 	 * H: 00-23, h: 0-11(am/pm) Z: timezone (+8000) see full doc <a href=

@@ -31,7 +31,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="me.aiqi.A7weibo.weibo.WeiboCommentActivity"
+            android:name="me.aiqi.A7weibo.weibo.WeiboAddCommentActivity"
             android:launchMode="singleTask" >
         </activity>
         <activity

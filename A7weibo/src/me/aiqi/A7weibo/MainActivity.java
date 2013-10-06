@@ -114,7 +114,7 @@ public class MainActivity extends ActionBarActivity implements WeiboListCallback
 
 				case GET_ACCESS_TOKEN_FROM_CODE_SUCCEED:
 					Toast.makeText(MainActivity.this, "授权成功!", Toast.LENGTH_SHORT).show();
-					mAccessToken = ((MyApplication) getApplicationContext()).getAccessToken();
+					mAccessToken = MyApplication.getAccessToken();
 					if (mWeiboFragment == null) {
 						Log.d(TAG, "mWeiboFragment is null");
 					} else {

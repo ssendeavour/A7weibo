@@ -121,6 +121,7 @@ public class WeiboListFragment extends ListFragment implements PullToRefreshAtta
 		public void handleMessage(Message msg) {
 			int position;
 			WeiboItem weiboItem;
+			WeiboItem item;
 			Intent intent;
 
 			switch (msg.what) {
@@ -131,8 +132,12 @@ public class WeiboListFragment extends ListFragment implements PullToRefreshAtta
 			case COMMENT_WEIBO:
 				position = (Integer) msg.obj;
 				weiboItem = (WeiboItem) getListAdapter().getItem(position);
-				intent = new Intent(getActivity(), WeiboCommentActivity.class);
-				intent.putExtra(WeiboCommentActivity.WEIBO_ID, weiboItem.getId());
+				intent = new Intent(getActivity(), WeiboAddCommentActivity.class);
+				intent.putExtra(WeiboAddCommentActivity.WEIBO_ID, weiboItem.getId());
+				item = weiboItem.getRetweeted_status();
+				if (item != null) {
+					intent.putExtra(WeiboAddCommentActivity.ORIGINAL_WEIBO_ID, item.getId());
+				}
 				startActivityForResult(intent, COMMENT_WEIBO);
 				break;
 
@@ -141,7 +146,7 @@ public class WeiboListFragment extends ListFragment implements PullToRefreshAtta
 				weiboItem = (WeiboItem) getListAdapter().getItem(position);
 				intent = new Intent(getActivity(), WeiboRepostActivity.class);
 
-				WeiboItem item = weiboItem.getRetweeted_status();
+				item = weiboItem.getRetweeted_status();
 				if (item != null) {
 					// id of original weibo
 					intent.putExtra(WeiboRepostActivity.WEIBO_ID, item.getId());
