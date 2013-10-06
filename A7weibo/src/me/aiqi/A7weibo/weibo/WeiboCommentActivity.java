@@ -8,6 +8,8 @@
 package me.aiqi.A7weibo.weibo;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,19 +28,30 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.params.HttpParams;
+import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.preference.PreferenceActivity.Header;
+import android.text.Editable;
+import android.text.Html;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.View.OnFocusChangeListener;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class WeiboCommentActivity extends Activity {
@@ -58,6 +71,8 @@ public class WeiboCommentActivity extends Activity {
 	private Button btn_send;
 	private CheckBox cb_cc_to_me;
 	private EditText et_comment_content;
+	private TextView tv_character_number;
+
 	private boolean hasSend = false;
 	private long commentted_weibo_id; //id of weibo to be commented 
 	private MyHandler handler = new MyHandler();
@@ -71,6 +86,42 @@ public class WeiboCommentActivity extends Activity {
 		btn_send = (Button) findViewById(R.id.btn_send_comment);
 		cb_cc_to_me = (CheckBox) findViewById(R.id.cb_also_forward_to_my_weibo);
 		et_comment_content = (EditText) findViewById(R.id.et_weibo_comment_content);
+		tv_character_number = (TextView) findViewById(R.id.tv_comment_character_number);
+
+		et_comment_content.setOnFocusChangeListener(new OnFocusChangeListener() {
+
+			@Override
+			public void onFocusChange(View v, boolean hasFocus) {
+				if (hasFocus) {
+					InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+					imm.showSoftInput(v, InputMethodManager.SHOW_IMPLICIT);
+				}
+			}
+		});
+		et_comment_content.addTextChangedListener(new TextWatcher() {
+
+			@Override
+			public void onTextChanged(CharSequence s, int start, int before, int count) {
+			}
+
+			@Override
+			public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+			}
+
+			@Override
+			public void afterTextChanged(Editable s) {
+				int remains = Consts.Weibo.WEIBO_CONTENT_LENGTH - s.length();
+				if (remains >= 0) {
+					tv_character_number.setText(Html.fromHtml("还可输入 <b><font size=\"5\" color=\"navy\">" + remains
+							+ "</font></b> 个字"));
+				} else {
+					tv_character_number.setText(Html.fromHtml("超过了 <b><font size=\"5\" color=\"red\">" + (-remains)
+							+ "</font></b> 个字"));
+				}
+			}
+		});
+		// trigger afterTextChanged
+		et_comment_content.setText("");
 
 		commentted_weibo_id = getIntent().getLongExtra(WEIBO_ID, 0);
 
@@ -98,26 +149,34 @@ public class WeiboCommentActivity extends Activity {
 			switch (msg.what) {
 			case COMMENT_FAILED_NETWORK:
 				Toast.makeText(WeiboCommentActivity.this, (String) msg.obj, Toast.LENGTH_SHORT).show();
+				btn_send.setEnabled(true);
 				break;
 
 			case COMMENT_FAILED_EMPTY:
 				Toast.makeText(WeiboCommentActivity.this, "评论内容不能为空", Toast.LENGTH_SHORT).show();
+				btn_send.setEnabled(true);
 				break;
 
 			case COMMENT_FAILED_TOO_LONG:
 				Toast.makeText(WeiboCommentActivity.this, (String) msg.obj, Toast.LENGTH_SHORT).show();
+				btn_send.setEnabled(true);
 				break;
 
 			case COMMENT_FAILED_EXPIRED:
 				Toast.makeText(WeiboCommentActivity.this, "授权已过期，请重新授权", Toast.LENGTH_SHORT).show();
+				btn_send.setEnabled(true);
+				finish();
 				break;
 
 			case COMMENT_SUCCEED:
 				Toast.makeText(WeiboCommentActivity.this, "评论成功", Toast.LENGTH_SHORT).show();
+				btn_send.setEnabled(true);
+				finish();
 				break;
 
 			case COMMENT_FAILED_NOT_CONNECTED:
 				Toast.makeText(WeiboCommentActivity.this, "未连接网络", Toast.LENGTH_SHORT).show();
+				btn_send.setEnabled(true);
 				break;
 			}
 			super.handleMessage(msg);
@@ -141,7 +200,9 @@ public class WeiboCommentActivity extends Activity {
 	}
 
 	private void send() {
+		btn_send.setEnabled(false);
 		new Thread() {
+			@SuppressLint("NewApi")
 			@Override
 			public void run() {
 				super.run();
@@ -166,6 +227,7 @@ public class WeiboCommentActivity extends Activity {
 					handler.sendMessage(msg);
 					return;
 				}
+				Log.v(TAG, content);
 
 				AccessToken accessToken = MyApplication.getAccessToken();
 				if (accessToken.isExpired()) {
@@ -184,7 +246,7 @@ public class WeiboCommentActivity extends Activity {
 					nameValuePairs.add(new BasicNameValuePair("comment", content));
 					nameValuePairs.add(new BasicNameValuePair("access_token", accessToken.getAccessTokenString()));
 					nameValuePairs.add(new BasicNameValuePair("id", "" + commentted_weibo_id));
-					httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+					httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs, HTTP.UTF_8));
 
 					Log.v(TAG, httppost.getRequestLine().getUri());
 

@@ -13,6 +13,7 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
 
 public class PostDataExample {
@@ -27,7 +28,7 @@ public class PostDataExample {
 			List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
 			nameValuePairs.add(new BasicNameValuePair("id", "12345"));
 			nameValuePairs.add(new BasicNameValuePair("stringdata", "AndDev is Cool!"));
-			httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+			httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs, HTTP.UTF_8));
 
 			// Execute HTTP Post Request
 			HttpResponse response = httpclient.execute(httppost);

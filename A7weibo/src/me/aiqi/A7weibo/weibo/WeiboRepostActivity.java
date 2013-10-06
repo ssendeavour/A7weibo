@@ -29,17 +29,25 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
 
 import android.R.bool;
 import android.app.Activity;
+import android.content.Context;
+import android.inputmethodservice.InputMethodService;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.text.Editable;
+import android.text.Html;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.View.OnFocusChangeListener;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -76,6 +84,8 @@ public class WeiboRepostActivity extends Activity {
 	private CheckBox cb_cc_to_original;
 	private EditText et_repost_content;
 	private TextView tv_original_text;
+	private TextView tv_character_number;
+
 	private boolean hasSend = false;
 
 	private long weibo_id = 0;
@@ -93,6 +103,45 @@ public class WeiboRepostActivity extends Activity {
 		cb_cc_to_original = (CheckBox) findViewById(R.id.cb_also_comment_to_original_weibo);
 		et_repost_content = (EditText) findViewById(R.id.et_repost_weibo_content);
 		tv_original_text = (TextView) findViewById(R.id.tv_repost_original_weibo);
+		tv_character_number = (TextView) findViewById(R.id.tv_repost_character_number);
+
+		et_repost_content.setOnFocusChangeListener(new OnFocusChangeListener() {
+
+			@Override
+			public void onFocusChange(View v, boolean hasFocus) {
+				if (hasFocus) {
+					InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+					imm.showSoftInput(v, InputMethodManager.SHOW_IMPLICIT);
+				}
+			}
+		});
+
+		et_repost_content.addTextChangedListener(new TextWatcher() {
+
+			@Override
+			public void onTextChanged(CharSequence s, int start, int before, int count) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void afterTextChanged(Editable s) {
+				int remains = Consts.Weibo.WEIBO_CONTENT_LENGTH - s.length();
+				if (remains >= 0) {
+					tv_character_number.setText(Html.fromHtml("还可输入 <b><font size=\"5\" color=\"navy\">" + remains
+							+ "</font></b> 个字"));
+				} else {
+					tv_character_number.setText(Html.fromHtml("超过了 <b><font size=\"5\" color=\"red\">" + (-remains)
+							+ "</font></b> 个字"));
+				}
+			}
+		});
 
 		weibo_id = getIntent().getLongExtra(WEIBO_ID, 0);
 
@@ -217,6 +266,7 @@ public class WeiboRepostActivity extends Activity {
 					handler.sendMessage(msg);
 					return;
 				}
+				Log.v(TAG, weibo);
 
 				// also comment when repost
 				int is_comment;
@@ -237,7 +287,7 @@ public class WeiboRepostActivity extends Activity {
 					nameValuePairs.add(new BasicNameValuePair("access_token", accessToken.getAccessTokenString()));
 					nameValuePairs.add(new BasicNameValuePair("id", "" + weibo_id));
 					nameValuePairs.add(new BasicNameValuePair("is_comment", "" + is_comment));
-					httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+					httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs, HTTP.UTF_8));
 
 					Log.v(TAG, httppost.getRequestLine().getUri());
 

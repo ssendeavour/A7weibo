@@ -140,15 +140,17 @@ public class WeiboListFragment extends ListFragment implements PullToRefreshAtta
 				position = (Integer) msg.obj;
 				weiboItem = (WeiboItem) getListAdapter().getItem(position);
 				intent = new Intent(getActivity(), WeiboRepostActivity.class);
-				intent.putExtra(WeiboRepostActivity.WEIBO_ID, weiboItem.getId());
 
 				WeiboItem item = weiboItem.getRetweeted_status();
 				if (item != null) {
+					// id of original weibo
+					intent.putExtra(WeiboRepostActivity.WEIBO_ID, item.getId());
 					intent.putExtra(WeiboRepostActivity.USER_NAME, item.getUser().getName());
 					intent.putExtra(WeiboRepostActivity.WEIBO_CONTENT, item.getText());
 					intent.putExtra(WeiboRepostActivity.OTHERS_COMMENT, weiboItem.getText());
 					intent.putExtra(WeiboRepostActivity.COMMENTERS_NAME, weiboItem.getUser().getName());
 				} else {
+					intent.putExtra(WeiboRepostActivity.WEIBO_ID, weiboItem.getId());
 					intent.putExtra(WeiboRepostActivity.USER_NAME, weiboItem.getUser().getName());
 					intent.putExtra(WeiboRepostActivity.WEIBO_CONTENT, weiboItem.getText());
 				}

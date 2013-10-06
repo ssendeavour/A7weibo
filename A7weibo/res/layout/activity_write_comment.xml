@@ -8,11 +8,23 @@
         android:id="@+id/et_weibo_comment_content"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginLeft="6dp"
+        android:layout_marginRight="6dp"
         android:background="#EEE"
         android:hint="说点什么吧"
         android:minLines="3"
+        android:paddingLeft="4dp"
+        android:paddingRight="4dp"
         android:text=""
         android:textAlignment="viewStart" />
+
+    <TextView
+        android:id="@+id/tv_comment_character_number"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="4dp"
+        android:layout_marginTop="6dp"
+        android:singleLine="true" />
 
     <CheckBox
         android:id="@+id/cb_also_forward_to_my_weibo"

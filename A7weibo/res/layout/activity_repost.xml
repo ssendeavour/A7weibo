@@ -8,9 +8,13 @@
         android:id="@+id/et_repost_weibo_content"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginLeft="6dp"
+        android:layout_marginRight="6dp"
         android:background="#EEE"
         android:hint="说点什么吧"
         android:minLines="3"
+        android:paddingLeft="4dp"
+        android:paddingRight="4dp"
         android:text=""
         android:textAlignment="viewStart" />
 
@@ -18,13 +22,14 @@
         android:id="@+id/tv_repost_character_number"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
+        android:layout_marginTop="6dp"
         android:singleLine="true" />
 
     <TextView
         android:id="@+id/tv_repost_original_weibo"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
         android:background="#EEE"
         android:text=""
         android:textAlignment="viewStart" />
