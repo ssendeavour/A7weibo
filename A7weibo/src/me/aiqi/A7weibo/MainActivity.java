@@ -33,6 +33,7 @@ import uk.co.senab.actionbarpulltorefresh.extras.actionbarcompat.PullToRefreshAt
 import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
@@ -120,11 +121,9 @@ public class MainActivity extends ActionBarActivity implements WeiboListCallback
 					if (mWeiboFragment == null) {
 						Log.d(TAG, "mWeiboFragment is null");
 					} else {
-						WeiboListAdapter adapter = (WeiboListAdapter) mWeiboFragment.getListAdapter();
+						final WeiboListAdapter adapter = (WeiboListAdapter) mWeiboFragment.getListAdapter();
 						if (adapter == null) {
 							Log.w(TAG, "got access token, but WeiboListAdapter is null");
-							//							adapter = new WeiboListAdapter(MainActivity.this);
-							//							mWeiboFragment.setListAdapter(adapter);
 						} else {
 							adapter.refresh(mAccessToken);
 						}
@@ -235,6 +234,7 @@ public class MainActivity extends ActionBarActivity implements WeiboListCallback
 		 * perform SSO or OAuth 2.0 authentication
 		 */
 		public synchronized void auth() {
+
 			// another authentication is in process
 			if (isLoggingOn.get()) {
 				return;
@@ -331,7 +331,7 @@ public class MainActivity extends ActionBarActivity implements WeiboListCallback
 					try {
 						AccessToken accessToken = new AccessToken();
 						JSONObject jsonObject = new JSONObject(result);
-						
+
 						accessToken.setAccessTokenString(jsonObject.getString(AccessToken.ACCESS_TOKEN));
 						accessToken.setExpireTimeFromExpiresIn(jsonObject.getLong(AccessToken.EXPIRES_IN));
 						accessToken.setUid(jsonObject.getLong(AccessToken.UID));

@@ -18,6 +18,7 @@ import me.aiqi.A7weibo.entity.Consts;
 import me.aiqi.A7weibo.entity.WeiboCommentResponse;
 import me.aiqi.A7weibo.entity.WeiboRepostResponse;
 import me.aiqi.A7weibo.network.NetworkCondition;
+import me.aiqi.A7weibo.network.SslClient;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -256,7 +257,7 @@ public class WeiboAddCommentActivity extends Activity {
 				// repost to myself
 				if (cb_cc_to_me.isChecked()) {
 					// Create a new HttpClient and Post Header
-					HttpClient httpclient = new DefaultHttpClient();
+					HttpClient httpclient = SslClient.getSslClient(new DefaultHttpClient());
 					HttpPost httppost = new HttpPost("https://api.weibo.com/2/statuses/repost.json");
 
 					try {
@@ -309,7 +310,7 @@ public class WeiboAddCommentActivity extends Activity {
 					}
 				} else {
 					// Create a new HttpClient and Post Header
-					HttpClient httpclient = new DefaultHttpClient();
+					HttpClient httpclient = SslClient.getSslClient(new DefaultHttpClient());
 					HttpPost httppost = new HttpPost("https://api.weibo.com/2/comments/create.json");
 
 					try {

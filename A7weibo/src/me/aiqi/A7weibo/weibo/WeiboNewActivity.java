@@ -18,6 +18,7 @@ import me.aiqi.A7weibo.entity.Consts;
 import me.aiqi.A7weibo.entity.WeiboItem;
 import me.aiqi.A7weibo.entity.WeiboNewResponse;
 import me.aiqi.A7weibo.network.NetworkCondition;
+import me.aiqi.A7weibo.network.SslClient;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -228,7 +229,8 @@ public class WeiboNewActivity extends Activity {
 				}
 
 				// Create a new HttpClient and Post Header
-				HttpClient httpclient = new DefaultHttpClient();
+				HttpClient httpClient = SslClient.getSslClient(new DefaultHttpClient());
+				httpClient = SslClient.getSslClient(httpClient);
 				HttpPost httppost = new HttpPost("https://api.weibo.com/2/statuses/update.json");
 
 				try {
@@ -239,7 +241,7 @@ public class WeiboNewActivity extends Activity {
 					httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs, HTTP.UTF_8));
 
 					// Execute HTTP Post Request	
-					HttpResponse response = httpclient.execute(httppost);
+					HttpResponse response = httpClient.execute(httppost);
 					int statusCode = response.getStatusLine().getStatusCode();
 					if (statusCode == HttpStatus.SC_OK) {
 						String json = EntityUtils.toString(response.getEntity());
@@ -267,9 +269,10 @@ public class WeiboNewActivity extends Activity {
 						return;
 					}
 				} catch (IOException e) {
+					e.printStackTrace();
 					Message msg = Message.obtain();
 					msg.what = FAILED_NETWORK;
-					msg.obj = "网络异常,评论失败";
+					msg.obj = "网络异常,发送失败";
 					handler.sendMessage(msg);
 					return;
 				}

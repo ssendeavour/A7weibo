@@ -18,6 +18,7 @@ import me.aiqi.A7weibo.entity.Consts;
 import me.aiqi.A7weibo.entity.WeiboCommentResponse;
 import me.aiqi.A7weibo.entity.WeiboRepostResponse;
 import me.aiqi.A7weibo.network.NetworkCondition;
+import me.aiqi.A7weibo.network.SslClient;
 import me.aiqi.A7weibo.util.WbUtil;
 import me.aiqi.A7weibo.util.WeiboRichText;
 
@@ -280,7 +281,7 @@ public class WeiboRepostActivity extends Activity {
 				}
 
 				// Create a new HttpClient and Post Header
-				HttpClient httpclient = new DefaultHttpClient();
+				HttpClient httpclient = SslClient.getSslClient(new DefaultHttpClient());
 				HttpPost httppost = new HttpPost("https://api.weibo.com/2/statuses/repost.json");
 
 				try {

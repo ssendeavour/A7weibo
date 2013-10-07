@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import me.aiqi.A7weibo.network.SslClient;
+
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
@@ -20,7 +22,7 @@ public class PostDataExample {
 
 	public void postData() {
 		// Create a new HttpClient and Post Header
-		HttpClient httpclient = new DefaultHttpClient();
+		HttpClient httpclient = SslClient.getSslClient(new DefaultHttpClient());
 		HttpPost httppost = new HttpPost("http://www.yoursite.com/script.php");
 
 		try {
