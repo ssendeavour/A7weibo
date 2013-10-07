@@ -189,29 +189,29 @@ public class WeiboRepostActivity extends Activity {
 		public void handleMessage(Message msg) {
 			switch (msg.what) {
 			case REPOST_FAILED_NETWORK:
-				btn_cancel.setEnabled(true);
+				btn_send.setEnabled(true);
 				Toast.makeText(WeiboRepostActivity.this, (String) msg.obj, Toast.LENGTH_SHORT).show();
 				break;
 
 			case REPOST_FAILED_TOO_LONG:
-				btn_cancel.setEnabled(true);
+				btn_send.setEnabled(true);
 				Toast.makeText(WeiboRepostActivity.this, (String) msg.obj, Toast.LENGTH_SHORT).show();
 				break;
 
 			case REPOST_FAILED_EXPIRED:
-				btn_cancel.setEnabled(true);
+				btn_send.setEnabled(true);
 				Toast.makeText(WeiboRepostActivity.this, "授权已过期，请重新授权", Toast.LENGTH_SHORT).show();
 				finish();
 				break;
 
 			case REPOST_SUCCEED:
-				btn_cancel.setEnabled(true);
+				btn_send.setEnabled(true);
 				Toast.makeText(WeiboRepostActivity.this, "转发成功", Toast.LENGTH_SHORT).show();
 				finish();
 				break;
 
 			case REPOST_FAILED_NOT_CONNECTED:
-				btn_cancel.setEnabled(true);
+				btn_send.setEnabled(true);
 				Toast.makeText(WeiboRepostActivity.this, "未连接网络", Toast.LENGTH_SHORT).show();
 				break;
 			}

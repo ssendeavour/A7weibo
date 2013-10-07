@@ -34,6 +34,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.view.ViewParent;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.FrameLayout;
@@ -248,6 +249,7 @@ public class WeiboListAdapter extends BaseAdapter {
 		} else {
 			viewHolder = (ViewHolder) convertView.getTag();
 
+			// recycle bitmap images, don,t recycle avatar, as it is managed by ImageCache
 			for (ImageView imageView : Arrays.asList(viewHolder.iv_image, viewHolder.iv_orig_image)) {
 				Drawable drawable = imageView.getDrawable();
 				if (drawable != null && drawable instanceof BitmapDrawable) {
@@ -255,6 +257,7 @@ public class WeiboListAdapter extends BaseAdapter {
 					if (bitmap != null) {
 						bitmap.recycle();
 						Log.v(TAG, "recycle bitmap");
+						imageView.setImageBitmap(Consts.PLACE_HOLDER_IMAGE_1x1);
 					}
 				}
 			}
