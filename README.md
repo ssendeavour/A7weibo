@@ -20,6 +20,7 @@ Sina weibo Android client for Android 2.3 and up. (experimental)
 	+ 显示微博的第一张缩略图（如果有图）
 - 评论
 - 转发
+- 查看我自己的微博
 
 
 ### currently used open source library
