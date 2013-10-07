@@ -311,7 +311,7 @@ public class WeiboListAdapter extends BaseAdapter {
 			//			viewHolder.iv_orig_image.setImageBitmap(Consts.PLACE_HOLDER_IMAGE_1x1);
 
 			viewHolder.iv_image.setImageResource(R.drawable.image_loading);
-			MyApplication.LARGE_IMAGE_CACHE.get(weiboItem.getThumbnail_pic(), viewHolder.iv_image);
+			MyApplication.LARGE_IMAGE_CACHE.get(weiboItem.getBmiddle_pic(), viewHolder.iv_image);
 
 		} else if (weiboItem.getRetweeted_status() != null) {
 			// load original weibo
@@ -332,7 +332,7 @@ public class WeiboListAdapter extends BaseAdapter {
 				// original weibo have image
 				viewHolder.iv_orig_image.setVisibility(View.VISIBLE);
 				viewHolder.iv_orig_image.setImageResource(R.drawable.image_loading);
-				MyApplication.LARGE_IMAGE_CACHE.get(originalWeibo.getThumbnail_pic(), viewHolder.iv_orig_image);
+				MyApplication.LARGE_IMAGE_CACHE.get(originalWeibo.getBmiddle_pic(), viewHolder.iv_orig_image);
 			} else {
 				// original don't have image
 				viewHolder.iv_orig_image.setVisibility(View.GONE);
