@@ -179,6 +179,7 @@ public class WeiboAddCommentActivity extends Activity {
 			case COMMENT_SUCCEED:
 				Toast.makeText(WeiboAddCommentActivity.this, "评论成功", Toast.LENGTH_SHORT).show();
 				btn_send.setEnabled(true);
+				hasSend = true;
 				finish();
 				break;
 
@@ -191,6 +192,7 @@ public class WeiboAddCommentActivity extends Activity {
 			case REPOST_SUCCEED:
 				btn_send.setEnabled(true);
 				Toast.makeText(WeiboAddCommentActivity.this, "评论和转发成功", Toast.LENGTH_SHORT).show();
+				hasSend = true;
 				finish();
 				break;
 			}

@@ -204,6 +204,12 @@ public class WeiboListFragment extends ListFragment implements PullToRefreshAtta
 			loadMoreWeibo();
 			return true;
 
+		case R.id.action_new_weibo:
+			Log.v(TAG, "new text weibo");
+			Intent intent = new Intent(getActivity(), WeiboNewActivity.class);
+			startActivity(intent);
+			return true;
+
 		default:
 			return super.onOptionsItemSelected(item);
 		}

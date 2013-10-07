@@ -38,6 +38,10 @@
             android:name="me.aiqi.A7weibo.weibo.WeiboRepostActivity"
             android:launchMode="singleTask" >
         </activity>
+        <activity
+            android:name="me.aiqi.A7weibo.weibo.WeiboNewActivity"
+            android:launchMode="singleTask" >
+        </activity>
     </application>
 
 </manifest>

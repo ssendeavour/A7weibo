@@ -2,13 +2,17 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android" >
 
     <item
+        android:id="@+id/action_load_more"
+        android:showAsAction="always"
+        android:title="更多"/>
+    <item
         android:id="@+id/action_refresh"
         android:icon="@drawable/ic_menu_refresh"
         android:showAsAction="always"
         android:title="刷新"/>
     <item
-        android:id="@+id/action_load_more"
+        android:id="@+id/action_new_weibo"
         android:showAsAction="always"
-        android:title="更多"/>
+        android:title="发微博"/>
 
 </menu>

@@ -207,6 +207,7 @@ public class WeiboRepostActivity extends Activity {
 			case REPOST_SUCCEED:
 				btn_send.setEnabled(true);
 				Toast.makeText(WeiboRepostActivity.this, "转发成功", Toast.LENGTH_SHORT).show();
+				hasSend = true;
 				finish();
 				break;
 
