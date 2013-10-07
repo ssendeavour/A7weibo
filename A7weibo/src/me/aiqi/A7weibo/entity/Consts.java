@@ -27,8 +27,13 @@ public class Consts {
 	/** set this small image to release memory if ImageView */
 	public static final Bitmap PLACE_HOLDER_IMAGE_1x1 = BitmapFactory.decodeResource(MyApplication.getContext()
 			.getResources(), R.drawable.place_holder_1x1);
-	
-	public static final class Weibo{
-		public static final int WEIBO_CONTENT_LENGTH = 140;		// 140 characters at most one weibo
+
+	public static final class Weibo {
+		public static final int WEIBO_CONTENT_LENGTH = 140; // 140 characters at most one weibo
+	}
+
+	public static final class ApiUrl {
+		public static final String FRIENDS_TIMELINE = "https://api.weibo.com/2/statuses/friends_timeline.json";
+		public static final String USER_TIMELINE = "https://api.weibo.com/2/statuses/user_timeline.json";
 	}
 }

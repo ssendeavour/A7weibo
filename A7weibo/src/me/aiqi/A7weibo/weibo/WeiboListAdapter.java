@@ -1,9 +1,6 @@
 package me.aiqi.A7weibo.weibo;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 import me.aiqi.A7weibo.MainActivity;
@@ -19,9 +16,6 @@ import me.aiqi.A7weibo.network.NetworkCondition;
 import me.aiqi.A7weibo.util.WbUtil;
 import me.aiqi.A7weibo.util.WeiboRichText;
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.AsyncTask.Status;
 import android.os.Handler;
@@ -34,7 +28,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
-import android.view.ViewParent;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.FrameLayout;
@@ -52,18 +45,22 @@ public class WeiboListAdapter extends BaseAdapter {
 	public static final int UPDATE_MODE_REFRESH = 1;
 
 	/** click listener for btn_comment, btn_like, btn_forward, etc */
-	private final OnClickListener mClickListener;
+	protected final OnClickListener mClickListener;
 
-	private Context mContext;
-	private List<WeiboItem> mWeiboItems;
-	private List<String> mAvatarUrlList;
-	private List<WeiboItem> mWeiboItemsOld;
-	private Handler mHandler;
-	private AsyncTask<Params, Void, ArrayList<WeiboItem>> mTask; // weiboitems downloader task
+	protected Context mContext;
+	protected long mUserId;
+	protected String mScreenName;
+	protected List<WeiboItem> mWeiboItems;
+	protected List<String> mAvatarUrlList;
+	protected List<WeiboItem> mWeiboItemsOld;
+	protected Handler mHandler;
+	protected AsyncTask<Params, Void, ArrayList<WeiboItem>> mTask; // weiboitems downloader task
 
 	public WeiboListAdapter(Context context, Handler handler) {
 		mContext = context;
 		mHandler = handler;
+		mUserId = 0;
+		mScreenName = "";
 
 		mWeiboItems = readWeiboItemsFromCache();
 		updateAvatarUrl(); // init mAvatarUrlList
@@ -131,6 +128,14 @@ public class WeiboListAdapter extends BaseAdapter {
 				}
 			}
 		};
+	}
+
+	/** userId and screenName, specify only one of them */
+	public WeiboListAdapter(Context context, Handler handler, long userId, String screenName) {
+		this(context, handler);
+		mUserId = userId;
+		mScreenName = screenName;
+		Log.v(TAG, "uid:" + mUserId + ", screenName:" + mScreenName);
 	}
 
 	/**
@@ -450,6 +455,12 @@ public class WeiboListAdapter extends BaseAdapter {
 			params.put(WeiboDownloader.Params.ACCESS_TOKEN, accessToken.getAccessTokenString());
 			params.put(WeiboDownloader.Params.REFRESH_MODE, refreshMode);
 			params.put(WeiboDownloader.Params.COUNT, Consts.WeiboDownloader.COUNT_PER_PAGE);
+			if (mUserId != 0) {
+				params.put(WeiboDownloader.Params.UID, mUserId);
+			} else if (!mScreenName.equals("")) {
+				params.put(WeiboDownloader.Params.SCREEN_NAME, mScreenName);
+			}
+
 			switch (refreshMode) {
 			case UPDATE_MODE_LOAD_MORE:
 				params.put(WeiboDownloader.Params.MAX_ID, getMaxId(mWeiboItems));

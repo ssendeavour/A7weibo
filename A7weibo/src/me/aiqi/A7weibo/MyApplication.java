@@ -16,8 +16,8 @@ import cn.trinea.android.common.service.impl.ImageSDCardCache.OnImageSDCallbackL
 
 public class MyApplication extends Application {
 	private static final String TAG = "MyApplication";
-	private static AccessToken accessToken;
-	private static MyApplication mApplicationContext;
+	private static AccessToken sAccessToken;
+	private static MyApplication sApplicationContext;
 
 	// Image cacher and loader from AndroidCommon
 	public static final ImageCache AVATAR_CACHE = new ImageCache();
@@ -76,20 +76,20 @@ public class MyApplication extends Application {
 
 	public MyApplication() {
 		super();
-		accessToken = new AccessToken();
-		mApplicationContext = this;
+		sAccessToken = new AccessToken();
+		sApplicationContext = this;
 	}
 
 	public static AccessToken getAccessToken() {
-		return accessToken;
+		return sAccessToken;
 	}
 
 	public static void setAccessToken(AccessToken token) {
-		accessToken = token;
+		sAccessToken = token;
 		Log.v(TAG, token.toString());
 	}
 
 	public static MyApplication getContext() {
-		return mApplicationContext;
+		return sApplicationContext;
 	}
 }

@@ -154,6 +154,8 @@ public class WeiboRepostActivity extends Activity {
 			cb_cc_to_original.setText("评论给原作者 " + userName);
 			cb_cc_to_reposted.setText("评论给 " + commenter);
 			et_repost_content.setText("//@" + commenter + ":" + getIntent().getStringExtra(OTHERS_COMMENT));
+			// move cursor before the first character
+			et_repost_content.setSelection(0);
 		} else {
 			et_repost_content.setText("");
 			cb_cc_to_reposted.setText("评论给 " + getIntent().getStringExtra(USER_NAME));

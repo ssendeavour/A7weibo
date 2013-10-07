@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import me.aiqi.A7weibo.downloader.WeiboDownloader;
 import me.aiqi.A7weibo.entity.AccessToken;
 import me.aiqi.A7weibo.entity.AppRegInfo;
 import me.aiqi.A7weibo.network.SslClient;
@@ -13,6 +14,7 @@ import me.aiqi.A7weibo.util.AppRegInfoHelper;
 import me.aiqi.A7weibo.weibo.WeiboListAdapter;
 import me.aiqi.A7weibo.weibo.WeiboListCallback;
 import me.aiqi.A7weibo.weibo.WeiboListFragment;
+import me.aiqi.A7weibo.weibo.WeiboListPerUserFragment;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -307,7 +309,6 @@ public class MainActivity extends ActionBarActivity implements WeiboListCallback
 					params.add(new BasicNameValuePair("code", code));
 					try {
 						httpRequest.setEntity(new UrlEncodedFormEntity(params, HTTP.UTF_8));
-						Log.v(TAG, "Post url: " + httpRequest.getURI());
 						HttpClient httpClient = SslClient.getSslClient(new DefaultHttpClient());
 						HttpResponse httpResponse = httpClient.execute(httpRequest);
 						int statusCode = httpResponse.getStatusLine().getStatusCode();
@@ -330,9 +331,10 @@ public class MainActivity extends ActionBarActivity implements WeiboListCallback
 					try {
 						AccessToken accessToken = new AccessToken();
 						JSONObject jsonObject = new JSONObject(result);
-						appRegInfo.setUid(jsonObject.getLong(AccessToken.UID));
+						
 						accessToken.setAccessTokenString(jsonObject.getString(AccessToken.ACCESS_TOKEN));
 						accessToken.setExpireTimeFromExpiresIn(jsonObject.getLong(AccessToken.EXPIRES_IN));
+						accessToken.setUid(jsonObject.getLong(AccessToken.UID));
 
 						// save access token to disk (SharedPreference)
 						AccessTokenKeeper.keepAccessToken(MainActivity.this, accessToken);
@@ -418,13 +420,21 @@ public class MainActivity extends ActionBarActivity implements WeiboListCallback
 		@Override
 		public Fragment getItem(int position) {
 			Fragment fragment = null;
-			if (position == TAB_WEIBO) {
+			Bundle args = new Bundle();
+			switch (position) {
+			case TAB_WEIBO:
 				fragment = new WeiboListFragment();
-			} else {
+				break;
+			case TAB_ME:
+				fragment = new WeiboListPerUserFragment();
+				args.putLong(WeiboDownloader.Params.UID, MyApplication.getAccessToken().getUid());
+				fragment.setArguments(args);
+				break;
+			default:
 				fragment = new DummySectionFragment();
-				Bundle args = new Bundle();
 				args.putInt(DummySectionFragment.ARG_SECTION_NUMBER, position + 1);
 				fragment.setArguments(args);
+				break;
 			}
 			return fragment;
 		}

@@ -27,8 +27,9 @@ public class AccessTokenKeeper {
 	public static boolean keepAccessToken(Context context, AccessToken token) {
 		SharedPreferences pref = context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_APPEND);
 		Editor editor = pref.edit();
-		editor.putString("token", token.getAccessTokenString());
-		editor.putLong("expiresTime", token.getExpireTime());
+		editor.putString(AccessToken.ACCESS_TOKEN, token.getAccessTokenString());
+		editor.putLong(AccessToken.EXPIRES_IN, token.getExpireTime());
+		editor.putLong(AccessToken.UID, token.getUid());
 		return editor.commit();
 	}
 
@@ -56,8 +57,9 @@ public class AccessTokenKeeper {
 		if (pref == null) {
 			return null;
 		}
-		token.setAccessTokenString(pref.getString("token", ""));
-		token.setExpireTime(pref.getLong("expiresTime", 0));
+		token.setAccessTokenString(pref.getString(AccessToken.ACCESS_TOKEN, ""));
+		token.setExpireTime(pref.getLong(AccessToken.EXPIRES_IN, 0));
+		token.setUid(pref.getLong(AccessToken.UID, 0));
 		return token;
 	}
 }

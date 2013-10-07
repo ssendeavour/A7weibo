@@ -7,17 +7,19 @@ import java.util.Locale;
 public class AccessToken {
 	public static String ACCESS_TOKEN = "access_token";
 	public static String EXPIRES_IN = "expires_in";
-	public static String UID = "uid";
+	public static String UID = "uid"; // uid of authorized user
 	public static String CODE = "code";
 
 	private String mAccessTokenString;
 	/** expire time in seconds since epoch */
 	private long mExpireTime;
+	private long mUid;
 
-	public AccessToken(String accessTokenString, long expireTime) {
+	public AccessToken(String accessTokenString, long expireTime, long uid) {
 		super();
 		mAccessTokenString = accessTokenString;
 		mExpireTime = expireTime;
+		mUid = uid;
 	}
 
 	public AccessToken() {
@@ -32,6 +34,14 @@ public class AccessToken {
 
 	public void setAccessTokenString(String accessToken) {
 		mAccessTokenString = accessToken;
+	}
+
+	public long getUid() {
+		return mUid;
+	}
+
+	public void setUid(long mUid) {
+		this.mUid = mUid;
 	}
 
 	public long getExpireTime() {
@@ -57,6 +67,6 @@ public class AccessToken {
 	@Override
 	public String toString() {
 		return "AccessToken [accessToken=" + mAccessTokenString + ", expireTime=" + mExpireTime + "("
-				+ getExpireTimeString() + ")]";
+				+ getExpireTimeString() + ")" + ", uid=" + mUid + "]";
 	}
 }

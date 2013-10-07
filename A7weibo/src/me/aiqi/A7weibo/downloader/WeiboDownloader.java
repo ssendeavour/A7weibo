@@ -6,6 +6,7 @@ import java.util.Map;
 
 import me.aiqi.A7weibo.MyApplication;
 import me.aiqi.A7weibo.entity.AccessToken;
+import me.aiqi.A7weibo.entity.Consts;
 import me.aiqi.A7weibo.entity.WeiboError;
 import me.aiqi.A7weibo.entity.WeiboItem;
 import me.aiqi.A7weibo.network.SslClient;
@@ -42,8 +43,6 @@ public class WeiboDownloader extends AsyncTask<WeiboDownloader.Params, Void, Arr
 	}
 
 	public static class Params {
-		public static final String mUrl = "https://api.weibo.com/2/statuses/friends_timeline.json";
-
 		public static final String ACCESS_TOKEN = "access_token"; // OAuth2.0方式授权的必选，其余为选填
 		public static final String SINCE_ID = "since_id"; // long,返回ID比since_id大的微博，默认为0。
 		public static final String MAX_ID = "max_id"; // long，回ID小于或等于max_id的微博，默认为0。
@@ -53,6 +52,9 @@ public class WeiboDownloader extends AsyncTask<WeiboDownloader.Params, Void, Arr
 		public static final String FEATURE = "feature"; // 过滤类型ID，0：全部、1：原创、2：图片、3：视频、4：音乐，默认为0。
 		public static final String TRIM_USER = "trim_user"; // int,
 															// 返回值中user字段开关，0：返回完整user字段、1：user字段仅返回user_id，默认为0。
+		/** uid 和 screen_name 只能选一个 */
+		public static final String UID = "uid"; // 	需要查询的用户ID。
+		public static final String SCREEN_NAME = "screen_name"; //需要查询的用户昵称。
 
 		/** 这个参数是程序定义的，Weibo API没有，参数值在{@link WeiboListAdapter}中定义 */
 		public static final String REFRESH_MODE = "refresh_mode";
@@ -84,7 +86,14 @@ public class WeiboDownloader extends AsyncTask<WeiboDownloader.Params, Void, Arr
 		 * @return
 		 */
 		public String buildURL() {
-			Uri.Builder builder = Uri.parse(mUrl).buildUpon();
+			Uri.Builder builder;
+			if (mMap.containsKey(UID) && mMap.get(UID).length() > 0 || mMap.containsKey(SCREEN_NAME)
+					&& mMap.get(SCREEN_NAME).length() > 0) {
+				builder = Uri.parse(Consts.ApiUrl.USER_TIMELINE).buildUpon();
+			} else {
+				builder = Uri.parse(Consts.ApiUrl.FRIENDS_TIMELINE).buildUpon();
+			}
+
 			for (Map.Entry<String, String> pair : mMap.entrySet()) {
 				builder.appendQueryParameter(pair.getKey(), pair.getValue());
 			}
