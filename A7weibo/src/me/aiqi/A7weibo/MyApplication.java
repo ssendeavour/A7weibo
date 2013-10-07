@@ -61,41 +61,7 @@ public class MyApplication extends Application {
 					return;
 				}
 
-				int reqHeight = 240;
-				int reqWidth = 240;
-
-				BitmapFactory.Options options = new BitmapFactory.Options();
-				options.inJustDecodeBounds = true;
-
-				BitmapFactory.decodeFile(imagePath, options);
-				//			            BitmapFactory.Options options, int reqWidth, int reqHeight) {
-
-				// Raw height and width of image
-				final int height = options.outHeight;
-				final int width = options.outWidth;
-				int inSampleSize = 1;
-
-				if (height > reqHeight || width > reqWidth) {
-
-					// Calculate ratios of height and width to requested height and width
-					final int heightRatio = (int) Math.ceil((double) height / (double) reqHeight);
-					final int widthRatio = (int) Math.ceil((double) width / (double) reqWidth);
-
-					// Choose the smallest ratio as inSampleSize value, this will guarantee
-					// a final image with both dimensions larger than or equal to the
-					// requested height and width.
-					inSampleSize = heightRatio < widthRatio ? heightRatio : widthRatio;
-					if (heightRatio >= 3 * widthRatio) {
-						inSampleSize = heightRatio;
-					} else if (widthRatio >= 3 * heightRatio && height > 200) {
-						inSampleSize = widthRatio;
-					}
-				}
-				Log.v(TAG, "inSampleSize:" + inSampleSize);
-
-				options.inSampleSize = inSampleSize;
-				options.inJustDecodeBounds = false;
-				Bitmap bitmap = BitmapFactory.decodeFile(imagePath, options);
+				Bitmap bitmap = BitmapFactory.decodeFile(imagePath);
 
 				if (bitmap == null) {
 					return;
