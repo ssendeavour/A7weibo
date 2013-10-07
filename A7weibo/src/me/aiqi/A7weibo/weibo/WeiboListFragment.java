@@ -1,5 +1,7 @@
 package me.aiqi.A7weibo.weibo;
 
+import java.util.Arrays;
+
 import me.aiqi.A7weibo.MainActivity;
 import me.aiqi.A7weibo.MyApplication;
 import me.aiqi.A7weibo.R;
@@ -8,9 +10,13 @@ import me.aiqi.A7weibo.R.layout;
 import me.aiqi.A7weibo.R.menu;
 import me.aiqi.A7weibo.entity.AccessToken;
 import me.aiqi.A7weibo.entity.WeiboItem;
+import me.aiqi.A7weibo.weibo.WeiboListAdapter.ViewHolder;
 import uk.co.senab.actionbarpulltorefresh.extras.actionbarcompat.PullToRefreshAttacher;
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -28,6 +34,7 @@ import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.ImageView;
 
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.assist.PauseOnScrollListener;
@@ -112,6 +119,26 @@ public class WeiboListFragment extends ListFragment implements PullToRefreshAtta
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 				Log.v(TAG, ((WeiboItem) getListView().getItemAtPosition(position)).getUser().getName());
 				Log.v(TAG, "list item clicked");
+			}
+		});
+
+		// recycle bitmap image
+		getListView().setRecyclerListener(new AbsListView.RecyclerListener() {
+
+			@Override
+			public void onMovedToScrapHeap(View view) {
+				// recycle bitmap images, don't recycle avatar, as it is managed by ImageCache
+				if (view.getTag() instanceof WeiboListAdapter.ViewHolder) {
+					WeiboListAdapter.ViewHolder viewHolder = (ViewHolder) view.getTag();
+					if (viewHolder != null) {
+						for (ImageView imageView : Arrays.asList(viewHolder.iv_image, viewHolder.iv_orig_image)) {
+							if (imageView != null) {
+								imageView.setImageDrawable(null);
+								Log.v(TAG, "image drawable set to null");
+							}
+						}
+					}
+				}
 			}
 		});
 	}

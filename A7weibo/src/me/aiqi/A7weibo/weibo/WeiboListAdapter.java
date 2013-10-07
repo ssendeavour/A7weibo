@@ -190,7 +190,7 @@ public class WeiboListAdapter extends BaseAdapter {
 	 * @author starfish
 	 * 
 	 */
-	private static class ViewHolder {
+	public static class ViewHolder {
 		public ImageView iv_avatar;
 		public TextView tv_nickname;
 		public TextView tv_source;
@@ -248,19 +248,6 @@ public class WeiboListAdapter extends BaseAdapter {
 			convertView.setTag(viewHolder);
 		} else {
 			viewHolder = (ViewHolder) convertView.getTag();
-
-			// recycle bitmap images, don,t recycle avatar, as it is managed by ImageCache
-			for (ImageView imageView : Arrays.asList(viewHolder.iv_image, viewHolder.iv_orig_image)) {
-				Drawable drawable = imageView.getDrawable();
-				if (drawable != null && drawable instanceof BitmapDrawable) {
-					Bitmap bitmap = ((BitmapDrawable) drawable).getBitmap();
-					if (bitmap != null) {
-						bitmap.recycle();
-						Log.v(TAG, "recycle bitmap");
-						imageView.setImageBitmap(Consts.PLACE_HOLDER_IMAGE_1x1);
-					}
-				}
-			}
 		}
 
 		viewHolder.tv_weibo_content.setTag(position);
@@ -308,7 +295,7 @@ public class WeiboListAdapter extends BaseAdapter {
 		}
 		Log.v(TAG, createTimeString);
 
-		// handle image, forwareded (retweeted) weibo
+		// handle image, forwarded (retweeted) weibo
 
 		if (!TextUtils.isEmpty(weiboItem.getThumbnail_pic())) {
 			// weibo have image, load thumb image
